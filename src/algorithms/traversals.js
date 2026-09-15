@@ -133,9 +133,14 @@ export function computeTreeLayout(root, options = {}) {
   function layoutSubtree(node) {
     if (!node) return;
 
-    const rank = inorderRanks.get(node.id);
-    node.x = Math.round(horizontalPadding + (rank * xStep));
-    node.y = Math.round(topMargin + (node.depth * yStep));
+    if (totalNodes === 1) {
+      node.x = Math.round(viewWidth / 2);
+      node.y = Math.round(topMargin + 60);
+    } else {
+      const rank = inorderRanks.get(node.id);
+      node.x = Math.round(horizontalPadding + (rank * xStep));
+      node.y = Math.round(topMargin + (node.depth * yStep));
+    }
 
     nodes.push(node);
 
@@ -177,6 +182,108 @@ export function computeTreeLayout(root, options = {}) {
   centerParents(root);
 
   return { nodes, edges, width: viewWidth, height: viewHeight };
+}
+
+/**
+ * Deep clone a binary tree
+ */
+export function cloneTree(root) {
+  if (!root) return null;
+  const newNode = new TreeNode(root.val, null, null, root.id);
+  newNode.left = cloneTree(root.left);
+  newNode.right = cloneTree(root.right);
+  return newNode;
+}
+
+/**
+ * Find node by ID in tree
+ */
+export function findNodeById(root, id) {
+  if (!root) return null;
+  if (root.id === id) return root;
+  const leftFound = findNodeById(root.left, id);
+  if (leftFound) return leftFound;
+  return findNodeById(root.right, id);
+}
+
+/**
+ * Count nodes in tree
+ */
+export function countNodes(root) {
+  if (!root) return 0;
+  return 1 + countNodes(root.left) + countNodes(root.right);
+}
+
+/**
+ * Calculate tree height
+ */
+export function getTreeHeight(root) {
+  if (!root) return 0;
+  return 1 + Math.max(getTreeHeight(root.left), getTreeHeight(root.right));
+}
+
+/**
+ * Add left child to a node
+ */
+export function addLeftChild(root, parentId, val) {
+  const tree = cloneTree(root);
+  const parent = findNodeById(tree, parentId);
+  if (!parent) throw new Error("Parent node not found");
+  if (parent.left) throw new Error("Left child already exists for this node");
+
+  const newId = `node_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  parent.left = new TreeNode(val, null, null, newId);
+  return tree;
+}
+
+/**
+ * Add right child to a node
+ */
+export function addRightChild(root, parentId, val) {
+  const tree = cloneTree(root);
+  const parent = findNodeById(tree, parentId);
+  if (!parent) throw new Error("Parent node not found");
+  if (parent.right) throw new Error("Right child already exists for this node");
+
+  const newId = `node_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  parent.right = new TreeNode(val, null, null, newId);
+  return tree;
+}
+
+/**
+ * Delete a node and its subtree
+ */
+export function deleteNodeById(root, targetId) {
+  if (!root) return null;
+  if (root.id === targetId) return null; // Root deleted -> empty tree
+
+  const tree = cloneTree(root);
+  function remove(parent) {
+    if (!parent) return false;
+    if (parent.left && parent.left.id === targetId) {
+      parent.left = null;
+      return true;
+    }
+    if (parent.right && parent.right.id === targetId) {
+      parent.right = null;
+      return true;
+    }
+    return remove(parent.left) || remove(parent.right);
+  }
+  remove(tree);
+  return tree;
+}
+
+/**
+ * Update a node's value
+ */
+export function updateNodeVal(root, targetId, newVal) {
+  const tree = cloneTree(root);
+  const target = findNodeById(tree, targetId);
+  if (target) {
+    target.val = newVal;
+  }
+  return tree;
 }
 
 /**

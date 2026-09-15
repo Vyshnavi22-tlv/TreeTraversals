@@ -5,6 +5,7 @@ import WhatIsBinaryTree from './sections/WhatIsBinaryTree';
 import WhatIsTraversal from './sections/WhatIsTraversal';
 import TraversalCardsSection from './sections/TraversalCardsSection';
 import VisualizerSection from './sections/VisualizerSection';
+import BuildYourOwnTreeSection from './sections/BuildYourOwnTreeSection';
 import ComparisonSection from './sections/ComparisonSection';
 import ComplexitySection from './sections/ComplexitySection';
 import QuizSection from './sections/QuizSection';
@@ -66,23 +67,26 @@ export default function App() {
           onSelectTraversal={handleSelectTraversalFromCard}
         />
 
-        {/* 5. Interactive Visualizer Workbench */}
+        {/* 5. Interactive Visualizer Workbench (Split-View Debugger) */}
         <VisualizerSection
           selectedTraversal={selectedTraversal}
           onTraversalChange={setSelectedTraversal}
         />
 
-        {/* 6. Comparison Matrix & Analysis */}
+        {/* 6. Feature 1: Build Your Own Tree */}
+        <BuildYourOwnTreeSection />
+
+        {/* 7. Three Traversals. One Tree. (Synchronized Comparison & Play All) */}
         <ComparisonSection />
 
-        {/* 7. Asymptotic Complexity */}
+        {/* 8. Feature 2: How Efficient Are They? (Time O(n) & Space O(h)) */}
         <ComplexitySection />
 
-        {/* 8. Seminar Mastery Quiz */}
+        {/* 9. Seminar Mastery Quiz */}
         <QuizSection />
       </main>
 
-      {/* 9. Footer */}
+      {/* 10. Footer */}
       <Footer onOpenShortcuts={() => setIsShortcutsOpen(true)} />
 
       {/* Modals */}

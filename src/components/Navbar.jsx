@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Sparkles, Presentation, Command, Github, Menu, X, BookOpen, Layers, PlayCircle, BarChart3, HelpCircle } from 'lucide-react';
+import { Network, Sparkles, Presentation, Command, Github, Menu, X, BookOpen, Layers, PlayCircle, BarChart3, HelpCircle, TreePine } from 'lucide-react';
 
 export default function Navbar({ onOpenPresentation, onOpenShortcuts }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,6 +17,7 @@ export default function Navbar({ onOpenPresentation, onOpenShortcuts }) {
     { name: 'Binary Tree', href: '#binary-tree', icon: BookOpen },
     { name: 'Traversals', href: '#traversals', icon: Layers },
     { name: 'Visualizer', href: '#visualizer', icon: PlayCircle, highlight: true },
+    { name: 'Build Tree', href: '#build-tree', icon: TreePine },
     { name: 'Comparison', href: '#comparison', icon: BarChart3 },
     { name: 'Complexity', href: '#complexity', icon: Network },
     { name: 'Quiz', href: '#quiz', icon: HelpCircle },
