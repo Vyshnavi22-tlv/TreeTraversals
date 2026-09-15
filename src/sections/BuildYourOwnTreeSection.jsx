@@ -8,12 +8,12 @@ import {
   Pause,
   ChevronRight,
   Sparkles,
-  Edit3,
-  AlertCircle,
-  CheckCircle2,
   TreePine,
+  CheckCircle2,
+  AlertCircle,
   Layers,
-  HelpCircle
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import VisualizerTreeSvg from '../components/VisualizerTreeSvg';
 import TraversalOutputQueue from '../components/TraversalOutputQueue';
@@ -35,11 +35,12 @@ import {
 import { TRAVERSAL_INFO } from '../data/traversalInfo';
 
 export default function BuildYourOwnTreeSection() {
-  // Tree state: default to seminar tree so user starts with a great playground
+  // Tree state: starts with the seminar tree so users have an immediate canvas to experiment with
   const [customTree, setCustomTree] = useState(() => createSeminarTree());
   const [selectedNodeId, setSelectedNodeId] = useState('A');
-  const [nodeValueInput, setNodeValueInput] = useState('');
-  const [feedbackMessage, setFeedbackMessage] = useState(null); // { type: 'error' | 'success', text: string }
+  const [nodeValueInput, setNodeValueInput] = useState('A');
+  const [newChildValue, setNewChildValue] = useState('X');
+  const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
   // Traversal execution state
   const [selectedTraversal, setSelectedTraversal] = useState('inorder');
@@ -52,20 +53,18 @@ export default function BuildYourOwnTreeSection() {
     return customTree && selectedNodeId ? findNodeById(customTree, selectedNodeId) : null;
   }, [customTree, selectedNodeId]);
 
-  // Keep nodeValueInput in sync when selection changes
+  // Sync nodeValueInput when selected node changes
   useEffect(() => {
     if (selectedNode) {
       setNodeValueInput(String(selectedNode.val));
-    } else {
-      setNodeValueInput('');
     }
   }, [selectedNodeId, selectedNode]);
 
-  // Stats
+  // Compute metrics
   const nodeCount = useMemo(() => countNodes(customTree), [customTree]);
   const treeHeight = useMemo(() => getTreeHeight(customTree), [customTree]);
 
-  // Pure traversal outputs on the custom tree
+  // Target expected output calculated by pure algorithm functions on custom tree
   const expectedOutput = useMemo(() => {
     if (!customTree) return [];
     if (selectedTraversal === 'inorder') return inorder(customTree);
@@ -74,7 +73,7 @@ export default function BuildYourOwnTreeSection() {
     return [];
   }, [customTree, selectedTraversal]);
 
-  // Algorithm steps for the custom tree
+  // Authentic algorithm execution steps generated for custom tree
   const steps = useMemo(() => {
     if (!customTree) return [];
     return generateTraversalSteps(customTree, selectedTraversal);
@@ -105,16 +104,23 @@ export default function BuildYourOwnTreeSection() {
     return () => clearTimeout(timer);
   }, [isPlaying, currentStepIndex, steps.length]);
 
-  // Notification helper
-  const notify = (text, type = 'error') => {
-    setFeedbackMessage({ text, type });
-    setTimeout(() => setFeedbackMessage(null), 3500);
+  const notify = (message, type = 'error') => {
+    setFeedback({ message, type });
+    setTimeout(() => setFeedback(null), 3500);
   };
 
-  // Tree operation handlers
+  const resetTraversal = () => {
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+  };
+
+  /* -------------------------------------------------------------
+   * Tree Editing Operations
+   * ------------------------------------------------------------- */
+  // 1. Add Root
   const handleAddRoot = () => {
     if (customTree) {
-      notify('Root already exists! You can delete it or add children to it.');
+      notify('Root already exists. You can select it to edit or delete.');
       return;
     }
     const val = nodeValueInput.trim() || 'A';
@@ -125,68 +131,64 @@ export default function BuildYourOwnTreeSection() {
     resetTraversal();
   };
 
+  // 2. Add Left Child
   const handleAddLeftChild = () => {
     if (!customTree) {
-      notify('Tree is empty. Add a root node first.');
+      notify('The tree is currently empty. Please create a Root node first.');
       return;
     }
     if (!selectedNode) {
-      notify('Please click on a node in the tree to select where to add a left child.');
+      notify('Please click a node on the tree to select where to attach the left child.');
       return;
     }
     if (selectedNode.left) {
       notify(`Node ${selectedNode.val} already has a left child (${selectedNode.left.val}).`);
       return;
     }
-
-    // Auto generate next letter or default
-    const nextVal = promptForValue(`Enter value for Left child of ${selectedNode.val}:`, 'L');
-    if (!nextVal) return;
-
+    const val = newChildValue.trim() || 'L';
     try {
-      const updated = addLeftChild(customTree, selectedNode.id, nextVal);
+      const updated = addLeftChild(customTree, selectedNode.id, val);
       setCustomTree(updated);
-      notify(`Added Left child "${nextVal}" to Node ${selectedNode.val}`, 'success');
+      notify(`Added Left child "${val}" to Node ${selectedNode.val}`, 'success');
       resetTraversal();
     } catch (err) {
       notify(err.message);
     }
   };
 
+  // 3. Add Right Child
   const handleAddRightChild = () => {
     if (!customTree) {
-      notify('Tree is empty. Add a root node first.');
+      notify('The tree is currently empty. Please create a Root node first.');
       return;
     }
     if (!selectedNode) {
-      notify('Please click on a node in the tree to select where to add a right child.');
+      notify('Please click a node on the tree to select where to attach the right child.');
       return;
     }
     if (selectedNode.right) {
       notify(`Node ${selectedNode.val} already has a right child (${selectedNode.right.val}).`);
       return;
     }
-
-    const nextVal = promptForValue(`Enter value for Right child of ${selectedNode.val}:`, 'R');
-    if (!nextVal) return;
-
+    const val = newChildValue.trim() || 'R';
     try {
-      const updated = addRightChild(customTree, selectedNode.id, nextVal);
+      const updated = addRightChild(customTree, selectedNode.id, val);
       setCustomTree(updated);
-      notify(`Added Right child "${nextVal}" to Node ${selectedNode.val}`, 'success');
+      notify(`Added Right child "${val}" to Node ${selectedNode.val}`, 'success');
       resetTraversal();
     } catch (err) {
       notify(err.message);
     }
   };
 
-  const handleDeleteSelected = () => {
+  // 4. Delete Node
+  const handleDeleteNode = () => {
     if (!customTree) {
-      notify('Tree is empty.');
+      notify('The tree is already empty.');
       return;
     }
     if (!selectedNode) {
-      notify('Please click a node to select it for deletion.');
+      notify('Click a node on the tree to select it for deletion.');
       return;
     }
 
@@ -195,13 +197,25 @@ export default function BuildYourOwnTreeSection() {
     const updated = deleteNodeById(customTree, selectedNode.id);
     setCustomTree(updated);
     setSelectedNodeId(updated ? updated.id : null);
-    notify(isRoot ? 'Cleared entire tree (Root deleted).' : `Deleted node "${valDeleted}" and its subtree.`, 'success');
+    notify(isRoot ? 'Cleared tree (Root was deleted).' : `Deleted node "${valDeleted}" and its subtree.`, 'success');
     resetTraversal();
   };
 
-  const handleUpdateValue = () => {
+  // 5. Reset
+  const handleReset = () => {
+    const tree = createSeminarTree();
+    setCustomTree(tree);
+    setSelectedNodeId('A');
+    setNodeValueInput('A');
+    setNewChildValue('X');
+    notify('Reset to canonical 5-node seminar tree (A-B-C-D-E).', 'success');
+    resetTraversal();
+  };
+
+  // Update selected node value
+  const handleUpdateNodeValue = () => {
     if (!selectedNode) {
-      notify('Select a node first to rename it.');
+      notify('Select a node first to change its value.');
       return;
     }
     const val = nodeValueInput.trim();
@@ -211,39 +225,21 @@ export default function BuildYourOwnTreeSection() {
     }
     const updated = updateNodeVal(customTree, selectedNode.id, val);
     setCustomTree(updated);
-    notify(`Updated node value to "${val}".`, 'success');
+    notify(`Updated node label to "${val}".`, 'success');
     resetTraversal();
   };
 
-  const handleResetToSeminar = () => {
-    const tree = createSeminarTree();
-    setCustomTree(tree);
-    setSelectedNodeId('A');
-    notify('Restored standard 5-node Seminar Tree (A-E).', 'success');
-    resetTraversal();
-  };
-
-  const handleClearTree = () => {
-    setCustomTree(null);
-    setSelectedNodeId(null);
-    notify('Tree cleared. Click "Add Root" to build from scratch.', 'success');
-    resetTraversal();
-  };
-
-  // Traversal playback
-  const resetTraversal = () => {
-    setIsPlaying(false);
-    setCurrentStepIndex(0);
-  };
-
+  /* -------------------------------------------------------------
+   * Traversal Playback
+   * ------------------------------------------------------------- */
   const handleTraversalChange = (type) => {
     setSelectedTraversal(type);
     resetTraversal();
   };
 
-  const handlePlayTraversal = () => {
+  const handleStartTraversal = () => {
     if (!customTree) {
-      notify('Add nodes to the tree before running traversal.');
+      notify('Cannot traverse an empty tree. Please add a root node first.');
       return;
     }
     if (currentStepIndex >= steps.length - 1) {
@@ -259,16 +255,9 @@ export default function BuildYourOwnTreeSection() {
     }
   };
 
-  // Helper prompt modal fallback
-  function promptForValue(msg, defaultVal) {
-    const res = window.prompt(msg, defaultVal);
-    if (!res) return null;
-    return res.trim().slice(0, 5); // Limit length
-  }
-
   return (
-    <section id="build-tree" className="py-20 border-t border-zinc-800/80 bg-dark-900/40 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="build-tree" className="py-20 border-t border-zinc-800/80 bg-dark-900/40 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 gap-4">
           <div>
@@ -282,53 +271,60 @@ export default function BuildYourOwnTreeSection() {
               Build Your Own Tree
             </h2>
             <p className="text-zinc-400 text-sm sm:text-base mt-2 max-w-2xl">
-              Construct any custom binary tree node-by-node. Add left and right children, modify values, and run the authentic Inorder, Preorder, and Postorder algorithms on your custom creation.
+              Create and modify any binary tree. Add root and child nodes, rename values, and watch the authentic Inorder, Preorder, and Postorder algorithms run on your custom creation.
             </p>
           </div>
 
-          {/* Quick preset buttons */}
+          {/* Quick Reset button */}
           <div className="flex items-center gap-2 self-start lg:self-auto font-mono text-xs">
             <button
-              onClick={handleResetToSeminar}
-              className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition border border-zinc-700"
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition border border-zinc-700"
+              title="Restore the canonical seminar tree"
             >
-              Reset to Seminar Tree
+              <RotateCcw size={13} />
+              <span>Reset to Default</span>
             </button>
             <button
-              onClick={handleClearTree}
-              className="px-3 py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 transition border border-red-800/40"
+              onClick={() => {
+                setCustomTree(null);
+                setSelectedNodeId(null);
+                notify('Tree cleared.', 'success');
+                resetTraversal();
+              }}
+              className="px-3 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 transition border border-red-800/40"
             >
-              Clear All
+              Clear Canvas
             </button>
           </div>
         </div>
 
-        {/* Builder Stage Container */}
-        <div className="bg-dark-950/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 shadow-2xl space-y-6">
-          {/* Notification / Toast Banner */}
+        {/* Builder Container Card */}
+        <div className="bg-dark-950/95 border border-zinc-800 rounded-2xl p-4 sm:p-7 shadow-2xl space-y-6">
+          {/* Notification Alert Banner */}
           <AnimatePresence>
-            {feedbackMessage && (
+            {feedback && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                exit={{ opacity: 0, y: -8 }}
                 className={`p-3 rounded-xl border text-xs font-mono flex items-center justify-between ${
-                  feedbackMessage.type === 'success'
+                  feedback.type === 'success'
                     ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
                     : 'bg-amber-950/30 border-amber-500/40 text-amber-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {feedbackMessage.type === 'success' ? (
+                  {feedback.type === 'success' ? (
                     <CheckCircle2 size={15} className="text-emerald-400" />
                   ) : (
                     <AlertCircle size={15} className="text-amber-400" />
                   )}
-                  <span>{feedbackMessage.text}</span>
+                  <span>{feedback.message}</span>
                 </div>
                 <button
-                  onClick={() => setFeedbackMessage(null)}
-                  className="text-zinc-500 hover:text-zinc-300 text-xs ml-4"
+                  onClick={() => setFeedback(null)}
+                  className="text-zinc-500 hover:text-zinc-300 ml-4 text-xs"
                 >
                   ✕
                 </button>
@@ -336,86 +332,132 @@ export default function BuildYourOwnTreeSection() {
             )}
           </AnimatePresence>
 
-          {/* Builder Controls Toolbar */}
-          <div className="p-4 rounded-xl bg-dark-900 border border-zinc-800/80 flex flex-wrap items-center justify-between gap-4">
-            {/* Left: Child Creation Controls */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              {!customTree ? (
-                <button
-                  onClick={handleAddRoot}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs font-mono shadow-md shadow-emerald-500/20 transition"
-                >
-                  <PlusCircle size={15} />
-                  <span>Add Root Node</span>
-                </button>
-              ) : (
-                <>
+          {/* ====================================================
+              BUILDER CONTROLS TOOLBAR
+              - Add Root
+              - Add Left Child
+              - Add Right Child
+              - Delete Node
+              - Reset
+              - Node Value Input
+             ==================================================== */}
+          <div className="p-4 rounded-xl bg-dark-900 border border-zinc-800/90 space-y-4">
+            {/* Top Toolbar Row */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {/* Primary Node Actions */}
+              <div className="flex flex-wrap items-center gap-2">
+                {!customTree ? (
                   <button
-                    onClick={handleAddLeftChild}
-                    disabled={!selectedNode || Boolean(selectedNode?.left)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-35 text-zinc-200 text-xs font-mono border border-zinc-700 transition"
-                    title={selectedNode?.left ? 'Left child already exists' : 'Add Left Child to selected node'}
+                    onClick={handleAddRoot}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs font-mono shadow-md shadow-emerald-500/20 transition"
                   >
-                    <PlusCircle size={14} className="text-sky-400" />
-                    <span>Add Left Child</span>
+                    <PlusCircle size={14} />
+                    <span>Add Root</span>
                   </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAddLeftChild}
+                      disabled={!selectedNode || Boolean(selectedNode?.left)}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-xs font-mono border border-zinc-700 transition"
+                      title={selectedNode?.left ? 'Left child already exists' : 'Add Left Child to selected node'}
+                    >
+                      <PlusCircle size={13} className="text-sky-400" />
+                      <span>Add Left Child</span>
+                    </button>
 
-                  <button
-                    onClick={handleAddRightChild}
-                    disabled={!selectedNode || Boolean(selectedNode?.right)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-35 text-zinc-200 text-xs font-mono border border-zinc-700 transition"
-                    title={selectedNode?.right ? 'Right child already exists' : 'Add Right Child to selected node'}
-                  >
-                    <PlusCircle size={14} className="text-purple-400" />
-                    <span>Add Right Child</span>
-                  </button>
+                    <button
+                      onClick={handleAddRightChild}
+                      disabled={!selectedNode || Boolean(selectedNode?.right)}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 text-zinc-200 text-xs font-mono border border-zinc-700 transition"
+                      title={selectedNode?.right ? 'Right child already exists' : 'Add Right Child to selected node'}
+                    >
+                      <PlusCircle size={13} className="text-purple-400" />
+                      <span>Add Right Child</span>
+                    </button>
 
-                  <button
-                    onClick={handleDeleteSelected}
-                    disabled={!selectedNode}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 disabled:opacity-30 text-red-300 text-xs font-mono border border-red-800/40 transition"
-                    title="Delete selected node and all its children"
-                  >
-                    <Trash2 size={14} />
-                    <span>Delete Node</span>
-                  </button>
-                </>
+                    <button
+                      onClick={handleDeleteNode}
+                      disabled={!selectedNode}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 disabled:opacity-25 text-red-300 text-xs font-mono border border-red-800/40 transition"
+                      title="Delete selected node and all its descendants"
+                    >
+                      <Trash2 size={13} />
+                      <span>Delete Node</span>
+                    </button>
+
+                    <button
+                      onClick={handleReset}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-950 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-mono border border-zinc-800 transition"
+                      title="Reset tree to default"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Reset</span>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Child Value Preset Input */}
+              {customTree && (
+                <div className="flex items-center gap-2 bg-dark-950 px-3 py-1.5 rounded-xl border border-zinc-800 text-xs font-mono">
+                  <span className="text-zinc-500">New Child Val:</span>
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={newChildValue}
+                    onChange={(e) => setNewChildValue(e.target.value)}
+                    className="w-12 bg-zinc-900 text-center font-bold text-sky-400 border border-zinc-750 rounded px-1.5 py-0.5 outline-none focus:border-sky-500"
+                    placeholder="Val"
+                  />
+                </div>
               )}
             </div>
 
-            {/* Right: Selected Node Rename Input & Stats */}
+            {/* Bottom Toolbar Row: Selected Node & Rename Input */}
             {selectedNode && (
-              <div className="flex items-center gap-2 bg-dark-950 p-1 rounded-xl border border-zinc-800 text-xs font-mono">
-                <span className="text-zinc-400 pl-2">Selected:</span>
-                <input
-                  type="text"
-                  maxLength={5}
-                  value={nodeValueInput}
-                  onChange={(e) => setNodeValueInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleUpdateValue()}
-                  className="w-16 bg-zinc-900 text-center font-bold text-emerald-300 border border-zinc-750 rounded-lg px-2 py-1 outline-none focus:border-emerald-500"
-                />
-                <button
-                  onClick={handleUpdateValue}
-                  className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition"
-                >
-                  Rename
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-850 text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400">Selected Node:</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                    Node {selectedNode.val}
+                  </span>
+                  <span className="text-zinc-500 text-[11px]">
+                    (Left: {selectedNode.left ? selectedNode.left.val : 'none'}, Right: {selectedNode.right ? selectedNode.right.val : 'none'})
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-500">Edit Value:</span>
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={nodeValueInput}
+                    onChange={(e) => setNodeValueInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleUpdateNodeValue()}
+                    className="w-16 bg-zinc-900 text-center font-bold text-white border border-zinc-750 rounded px-2 py-1 outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    onClick={handleUpdateNodeValue}
+                    className="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition"
+                  >
+                    Update
+                  </button>
+                </div>
+
+                <div className="text-zinc-500 text-[11px]">
+                  Total: <strong className="text-white">{nodeCount}</strong> nodes • Height: <strong className="text-white">{treeHeight}</strong>
+                </div>
               </div>
             )}
-
-            {/* Tree Stats Badge */}
-            <div className="flex items-center gap-3 font-mono text-xs text-zinc-400">
-              <span>Nodes: <strong className="text-white">{nodeCount}</strong></span>
-              <span className="text-zinc-600">•</span>
-              <span>Height: <strong className="text-white">{treeHeight}</strong></span>
-            </div>
           </div>
 
-          {/* Dynamic SVG Tree Canvas */}
-          <div className="bg-dark-950/80 border border-zinc-800/90 rounded-2xl p-4 relative min-h-[300px] flex flex-col justify-between">
+          {/* ====================================================
+              DYNAMIC SVG TREE CANVAS (REUSABLE LAYOUT)
+             ==================================================== */}
+          <div className="bg-dark-950/90 border border-zinc-800/90 rounded-2xl p-4 relative min-h-[300px] flex flex-col justify-between">
             <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2 border-b border-zinc-850">
-              <span>Click any node to select it for adding children or deletion</span>
+              <span>Interactive Dynamic Canvas (Click any node to select it)</span>
               <span>{selectedNode ? `Active Target: Node ${selectedNode.val}` : 'No node selected'}</span>
             </div>
 
@@ -428,7 +470,10 @@ export default function BuildYourOwnTreeSection() {
                 actionType={isPlaying ? currentStep.actionType : ''}
                 hoveredNodeId={hoveredNode?.id}
                 onNodeHover={setHoveredNode}
-                onNodeClick={(node) => setSelectedNodeId(node.id)}
+                onNodeClick={(node) => {
+                  setSelectedNodeId(node.id);
+                  setNodeValueInput(String(node.val));
+                }}
               />
             ) : (
               <div className="h-64 flex flex-col items-center justify-center text-center space-y-3">
@@ -436,43 +481,39 @@ export default function BuildYourOwnTreeSection() {
                   <TreePine size={24} />
                 </div>
                 <div className="text-zinc-400 font-mono text-sm">
-                  Your tree canvas is currently empty.
+                  The tree is currently empty.
                 </div>
                 <button
                   onClick={handleAddRoot}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold text-xs shadow-lg shadow-emerald-500/20"
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold text-xs shadow-lg shadow-emerald-500/20 transition"
                 >
-                  + Add Root Node
+                  + Add Root
                 </button>
               </div>
             )}
 
             <div className="pt-2 border-t border-zinc-850 flex items-center justify-between text-[11px] font-mono text-zinc-500">
-              <span>Layout: Dynamically computed without hardcoded coordinates</span>
-              <span>Reusable Engine</span>
+              <span>Dynamic Layout Engine</span>
+              <span>Automatic Bounding Box & Symmetrical Centering</span>
             </div>
           </div>
 
           {/* ====================================================
-              TRAVERSE YOUR CUSTOM TREE CONTROLS
+              TRAVERSAL ENGINE CONTROLS:
+              [ Inorder ] [ Preorder ] [ Postorder ]
+              Uses EXACT SAME traversal algorithms implemented!
              ==================================================== */}
-          <div className="p-5 rounded-2xl bg-dark-900/70 border border-zinc-800 space-y-4">
+          <div className="p-5 rounded-2xl bg-dark-900/80 border border-zinc-800 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-zinc-800/80">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs uppercase font-bold text-zinc-300">
-                  Traverse Your Custom Tree:
-                </span>
-              </div>
-
               {/* Traversal Selector: [ Inorder ] [ Preorder ] [ Postorder ] */}
               <div className="flex items-center bg-dark-950 p-1 rounded-xl border border-zinc-800 font-mono text-xs">
                 {['inorder', 'preorder', 'postorder'].map((t) => (
                   <button
                     key={t}
                     onClick={() => handleTraversalChange(t)}
-                    className={`px-3 py-1.5 rounded-lg capitalize transition ${
+                    className={`px-3.5 py-1.5 rounded-lg capitalize transition ${
                       selectedTraversal === t
-                        ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
+                        ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
                         : 'text-zinc-400 hover:text-white'
                     }`}
                   >
@@ -481,12 +522,12 @@ export default function BuildYourOwnTreeSection() {
                 ))}
               </div>
 
-              {/* Playback Controls */}
+              {/* Traversal Playback Controls */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handlePlayTraversal}
+                  onClick={handleStartTraversal}
                   disabled={!customTree || isPlaying}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-semibold text-xs font-mono transition shadow-md shadow-emerald-500/20"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-semibold text-xs font-mono transition shadow-md shadow-emerald-500/20"
                 >
                   <Play size={13} fill="currentColor" />
                   <span>Traverse</span>
@@ -495,7 +536,7 @@ export default function BuildYourOwnTreeSection() {
                 <button
                   onClick={() => setIsPlaying(false)}
                   disabled={!isPlaying}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 text-xs font-mono border border-zinc-700 transition"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-300 text-xs font-mono border border-zinc-700 transition"
                 >
                   <Pause size={13} fill="currentColor" />
                   <span>Pause</span>
@@ -512,7 +553,7 @@ export default function BuildYourOwnTreeSection() {
                 <button
                   onClick={handleStepForward}
                   disabled={!customTree || currentStepIndex >= steps.length - 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-dark-950 hover:bg-zinc-800 disabled:opacity-30 text-zinc-300 text-xs font-mono border border-zinc-800 transition"
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-dark-950 hover:bg-zinc-800 disabled:opacity-30 text-zinc-300 text-xs font-mono border border-zinc-800 transition"
                 >
                   <span>Step</span>
                   <ChevronRight size={13} />
@@ -535,7 +576,7 @@ export default function BuildYourOwnTreeSection() {
               </div>
             )}
 
-            {/* Traversal Output Queue */}
+            {/* Live Traversal Output Queue */}
             <TraversalOutputQueue
               visitedNodes={isPlaying || currentStepIndex > 0 ? currentStep.visitedNodes : []}
               expectedNodes={expectedOutput}
