@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Sparkles, Presentation, Command, Github, Menu, X, BookOpen, Layers, PlayCircle, BarChart3, HelpCircle, TreePine } from 'lucide-react';
+import { Network, Sparkles, Presentation, Command, Github, Menu, X, BookOpen, Layers, PlayCircle, BarChart3, TreePine } from 'lucide-react';
 
 export default function Navbar({ onOpenPresentation, onOpenShortcuts }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,7 +20,6 @@ export default function Navbar({ onOpenPresentation, onOpenShortcuts }) {
     { name: 'Build Tree', href: '#build-tree', icon: TreePine },
     { name: 'Comparison', href: '#comparison', icon: BarChart3 },
     { name: 'Complexity', href: '#complexity', icon: Network },
-    { name: 'Quiz', href: '#quiz', icon: HelpCircle },
   ];
 
   return (
@@ -57,11 +56,11 @@ export default function Navbar({ onOpenPresentation, onOpenShortcuts }) {
                 TREE TRAVERSALS
               </span>
               <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                SEMINAR
+                DEV SUITE
               </span>
             </div>
             <span className="text-[10px] text-zinc-400 font-mono tracking-wide hidden sm:block">
-              Interactive CS Educational Suite
+              Interactive Computer Science Platform
             </span>
           </div>
         </a>

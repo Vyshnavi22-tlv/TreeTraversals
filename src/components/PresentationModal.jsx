@@ -10,7 +10,7 @@ export default function PresentationModal({ isOpen, onClose }) {
   const slides = [
     {
       title: 'Binary Tree Traversals',
-      subtitle: 'College Seminar Presentation Overview',
+      subtitle: 'Algorithm & Data Structure Overview',
       content: (
         <div className="space-y-6 text-center max-w-2xl mx-auto">
           <p className="text-zinc-300 text-lg leading-relaxed">
@@ -37,7 +37,7 @@ export default function PresentationModal({ isOpen, onClose }) {
       )
     },
     {
-      title: 'Canonical Seminar Tree',
+      title: 'Standard Benchmark Tree',
       subtitle: 'The 5-Node Benchmark Tree (A-B-C-D-E)',
       content: (
         <div className="flex flex-col items-center">
@@ -160,7 +160,7 @@ export default function PresentationModal({ isOpen, onClose }) {
             <MonitorPlay size={18} />
           </div>
           <div>
-            <h2 className="font-mono text-sm font-bold text-white">Seminar Presentation Deck</h2>
+            <h2 className="font-mono text-sm font-bold text-white">Interactive Presentation Deck</h2>
             <p className="text-xs text-zinc-500 font-mono">
               Slide {slideIndex + 1} of {slides.length}
             </p>

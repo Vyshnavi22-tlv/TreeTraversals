@@ -22,9 +22,9 @@ export default function HeroSection({ onStartLearning, onTryVisualizer }) {
             {/* Top pill badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-300 shadow-sm">
               <span className="flex h-2 w-2 rounded-full bg-emerald-400"></span>
-              <span>Computer Science Seminar</span>
+              <span>Interactive Algorithm Suite</span>
               <span className="text-zinc-600">•</span>
-              <span className="text-emerald-400 font-semibold">CS201 Data Structures</span>
+              <span className="text-emerald-400 font-semibold">Binary Tree Traversals</span>
             </div>
 
             {/* Main Headline */}

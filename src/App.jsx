@@ -8,7 +8,6 @@ import VisualizerSection from './sections/VisualizerSection';
 import BuildYourOwnTreeSection from './sections/BuildYourOwnTreeSection';
 import ComparisonSection from './sections/ComparisonSection';
 import ComplexitySection from './sections/ComplexitySection';
-import QuizSection from './sections/QuizSection';
 import Footer from './sections/Footer';
 import PresentationModal from './components/PresentationModal';
 import ShortcutsModal from './components/ShortcutsModal';
@@ -32,7 +31,7 @@ export default function App() {
     scrollToSection('visualizer');
   };
 
-  // Enable seminar keyboard shortcuts
+  // Enable keyboard shortcuts
   useKeyboardShortcuts({
     onSelectInorder: () => setSelectedTraversal('inorder'),
     onSelectPreorder: () => setSelectedTraversal('preorder'),
@@ -81,12 +80,9 @@ export default function App() {
 
         {/* 8. Feature 2: How Efficient Are They? (Time O(n) & Space O(h)) */}
         <ComplexitySection />
-
-        {/* 9. Seminar Mastery Quiz */}
-        <QuizSection />
       </main>
 
-      {/* 10. Footer */}
+      {/* 9. Footer */}
       <Footer onOpenShortcuts={() => setIsShortcutsOpen(true)} />
 
       {/* Modals */}

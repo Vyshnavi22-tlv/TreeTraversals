@@ -5,7 +5,7 @@ export const TRAVERSAL_INFO = {
     rule: 'Left → Root → Right',
     shortRule: 'L - N - R',
     accent: '#10b981', // emerald
-    resultSeminarTree: ['D', 'B', 'E', 'A', 'C'],
+    resultExampleTree: ['D', 'B', 'E', 'A', 'C'],
     summary: 'Traverses the left subtree recursively, visits the current root node, and then recursively traverses the right subtree.',
     bstSuperpower: 'For a Binary Search Tree (BST), Inorder traversal visits keys in strictly non-decreasing (sorted) order.',
     pseudocode: [
@@ -35,7 +35,7 @@ export const TRAVERSAL_INFO = {
     rule: 'Root → Left → Right',
     shortRule: 'N - L - R',
     accent: '#38bdf8', // sky
-    resultSeminarTree: ['A', 'B', 'D', 'E', 'C'],
+    resultExampleTree: ['A', 'B', 'D', 'E', 'C'],
     summary: 'Visits the current root node first before making recursive calls down to the left and right subtrees.',
     bstSuperpower: 'Preserves the hierarchical parent-child relationships top-down, making it ideal for cloning or serializing a tree structure.',
     pseudocode: [
@@ -65,7 +65,7 @@ export const TRAVERSAL_INFO = {
     rule: 'Left → Right → Root',
     shortRule: 'L - R - N',
     accent: '#a855f7', // purple
-    resultSeminarTree: ['D', 'E', 'B', 'C', 'A'],
+    resultExampleTree: ['D', 'E', 'B', 'C', 'A'],
     summary: 'Visits both children recursively before finally processing the parent root node. Classic bottom-up evaluation.',
     bstSuperpower: 'Guarantees child dependencies are solved or deleted prior to touching the parent node.',
     pseudocode: [

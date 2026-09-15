@@ -1,4 +1,4 @@
-import { TreeNode, createSeminarTree } from '../algorithms/traversals';
+import { TreeNode, createStandardTree } from '../algorithms/traversals';
 
 /**
  * Binary Search Tree (Numeric):
@@ -41,9 +41,9 @@ export function createExpressionTree() {
 export const TREE_PRESETS = [
   {
     id: 'default',
-    name: 'Seminar Tree (A-E)',
-    description: 'The canonical 5-node tree (A, B, C, D, E) featured in the seminar specification.',
-    factory: createSeminarTree,
+    name: 'Standard Tree (A-E)',
+    description: 'The canonical 5-node reference tree (A, B, C, D, E).',
+    factory: createStandardTree,
     nodeCount: 5,
     height: 3,
   },

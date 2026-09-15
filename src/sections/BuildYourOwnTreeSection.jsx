@@ -19,7 +19,7 @@ import VisualizerTreeSvg from '../components/VisualizerTreeSvg';
 import TraversalOutputQueue from '../components/TraversalOutputQueue';
 import {
   TreeNode,
-  createSeminarTree,
+  createStandardTree,
   inorder,
   preorder,
   postorder,
@@ -35,8 +35,8 @@ import {
 import { TRAVERSAL_INFO } from '../data/traversalInfo';
 
 export default function BuildYourOwnTreeSection() {
-  // Tree state: starts with the seminar tree so users have an immediate canvas to experiment with
-  const [customTree, setCustomTree] = useState(() => createSeminarTree());
+  // Tree state: starts with the standard tree so users have an immediate canvas to experiment with
+  const [customTree, setCustomTree] = useState(() => createStandardTree());
   const [selectedNodeId, setSelectedNodeId] = useState('A');
   const [nodeValueInput, setNodeValueInput] = useState('A');
   const [newChildValue, setNewChildValue] = useState('X');
@@ -203,12 +203,12 @@ export default function BuildYourOwnTreeSection() {
 
   // 5. Reset
   const handleReset = () => {
-    const tree = createSeminarTree();
+    const tree = createStandardTree();
     setCustomTree(tree);
     setSelectedNodeId('A');
     setNodeValueInput('A');
     setNewChildValue('X');
-    notify('Reset to canonical 5-node seminar tree (A-B-C-D-E).', 'success');
+    notify('Reset to default 5-node benchmark tree (A-B-C-D-E).', 'success');
     resetTraversal();
   };
 
@@ -280,7 +280,7 @@ export default function BuildYourOwnTreeSection() {
             <button
               onClick={handleReset}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition border border-zinc-700"
-              title="Restore the canonical seminar tree"
+              title="Restore the default benchmark tree"
             >
               <RotateCcw size={13} />
               <span>Reset to Default</span>

@@ -12,7 +12,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import {
-  createSeminarTree,
+  createStandardTree,
   computeTreeLayout,
   inorder,
   preorder,
@@ -27,20 +27,20 @@ export default function ComparisonSection() {
   const [isPlayingAll, setIsPlayingAll] = useState(false);
   const [simStep, setSimStep] = useState(0); // 0 to 5
 
-  const seminarTree = useMemo(() => createSeminarTree(), []);
+  const standardTree = useMemo(() => createStandardTree(), []);
 
   // Compute canonical tree coordinates dynamically
   const { nodes, edges, width, height } = useMemo(() => {
-    return computeTreeLayout(seminarTree, {
+    return computeTreeLayout(standardTree, {
       viewWidth: 260,
       viewHeight: 180,
       topMargin: 35,
       bottomMargin: 30,
       horizontalPadding: 35
     });
-  }, [seminarTree]);
+  }, [standardTree]);
 
-  // Traversal sequences on seminar tree (A-E)
+  // Traversal sequences on standard tree (A-E)
   const sequences = useMemo(() => ({
     inorder: ['D', 'B', 'E', 'A', 'C'],
     preorder: ['A', 'B', 'D', 'E', 'C'],
@@ -331,7 +331,7 @@ export default function ComparisonSection() {
                 </h3>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Hit "Play All" to step through all three traversals simultaneously on the same 5-node seminar tree.
+                Hit "Play All" to step through all three traversals simultaneously on the same 5-node benchmark tree.
               </p>
             </div>
 
@@ -559,7 +559,7 @@ export default function ComparisonSection() {
                 Tree Reconstruction: Can Traversals Rebuild the Original Tree?
               </h3>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Theoretical seminar insight: Given two traversal orders, when is the original binary tree unique?
+                Theoretical computer science insight: Given two traversal orders, when is the original binary tree unique?
               </p>
             </div>
           </div>

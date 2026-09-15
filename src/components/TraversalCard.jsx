@@ -42,7 +42,7 @@ export default function TraversalCard({ info, onSelectForVisualizer }) {
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          Seminar Tree
+          Example Tree
         </button>
         <button
           onClick={() => setActiveTab('code')}
@@ -73,7 +73,7 @@ export default function TraversalCard({ info, onSelectForVisualizer }) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-zinc-400 font-medium">Canonical Result:</span>
               <span className="font-mono text-emerald-400 font-bold">
-                {info.resultSeminarTree.join(' → ')}
+                {info.resultExampleTree.join(' → ')}
               </span>
             </div>
 

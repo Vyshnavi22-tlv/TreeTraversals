@@ -14,9 +14,8 @@ Instead of only presenting algorithms and definitions, the application lets user
 * Compare all three traversals on the same tree
 * Build and traverse a custom Binary Tree
 * Time and space complexity explanation
-* Interactive quiz
 * Guided learning mode
-* Presentation Mode for seminars
+* Interactive Presentation Mode
 * Keyboard shortcuts
 * Responsive design
 * Reduced-motion accessibility support
@@ -163,7 +162,7 @@ Every node is visited exactly once.
 
 ## Purpose
 
-This project was created as an interactive **Computer Science seminar project** to make Binary Tree Traversals easier to understand through visualization, animation, and hands-on experimentation.
+This project was created as an interactive **Computer Science educational platform** to make Binary Tree Traversals intuitive and clear through step-by-step animation, algorithm tracing, and hands-on experimentation.
 
 ## License
 

@@ -6,7 +6,7 @@ export const COMPARISON_TABLE = [
     postorder: 'Left → Right → Node'
   },
   {
-    feature: 'Output on Seminar Tree (A-E)',
+    feature: 'Output on Example Tree (A-E)',
     inorder: 'D → B → E → A → C',
     preorder: 'A → B → D → E → C',
     postorder: 'D → E → B → C → A'

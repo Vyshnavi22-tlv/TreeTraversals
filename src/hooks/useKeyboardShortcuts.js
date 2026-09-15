@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 /**
- * Custom hook for seminar keyboard shortcuts:
+ * Custom hook for visualizer keyboard shortcuts:
  * Space: Play / Pause
  * R: Reset
  * 1: Inorder

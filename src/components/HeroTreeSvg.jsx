@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Sparkles } from 'lucide-react';
-import { createSeminarTree, computeTreeLayout, inorder, preorder, postorder } from '../algorithms/traversals';
+import { createStandardTree, computeTreeLayout, inorder, preorder, postorder } from '../algorithms/traversals';
 
 export default function HeroTreeSvg() {
   const shouldReduceMotion = useReducedMotion();
@@ -10,7 +10,7 @@ export default function HeroTreeSvg() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [hoveredNode, setHoveredNode] = useState(null);
 
-  const root = useMemo(() => createSeminarTree(), []);
+  const root = useMemo(() => createStandardTree(), []);
 
   // Compute dynamic layout from tree data without any hardcoded visual coordinates
   const { nodes, edges, width, height } = useMemo(() => {

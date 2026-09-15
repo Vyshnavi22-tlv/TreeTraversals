@@ -16,7 +16,7 @@ export default function Footer({ onOpenShortcuts }) {
               </span>
             </div>
             <p className="text-xs text-zinc-500 max-w-sm">
-              Interactive educational platform built for computer science college seminars to make tree algorithms intuitive and visually tangible.
+              Interactive educational platform designed to make binary tree algorithms intuitive, visual, and tangible.
             </p>
           </div>
 
@@ -33,7 +33,7 @@ export default function Footer({ onOpenShortcuts }) {
           </div>
         </div>
 
-        {/* Tech Stack and Seminar metadata */}
+        {/* Tech Stack and Platform metadata */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
           <div className="flex flex-wrap items-center gap-2">
             <span>Built with:</span>
@@ -45,7 +45,7 @@ export default function Footer({ onOpenShortcuts }) {
           </div>
 
           <div className="text-right">
-            Designed for CS Seminar & Educational Demonstrations
+            Designed for Interactive Algorithm Visualization
           </div>
         </div>
       </div>

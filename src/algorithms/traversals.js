@@ -65,14 +65,14 @@ export function postorder(root) {
 }
 
 /**
- * Canonical seminar tree factory:
+ * Canonical standard tree factory:
  *         A
  *        / \
  *       B   C
  *      / \
  *     D   E
  */
-export function createSeminarTree() {
+export function createStandardTree() {
   const d = new TreeNode('D', null, null, 'D');
   const e = new TreeNode('E', null, null, 'E');
   const b = new TreeNode('B', d, e, 'B');
@@ -287,7 +287,7 @@ export function updateNodeVal(root, targetId, newVal) {
 }
 
 /**
- * Exact pseudocode specifications required for the seminar debugger:
+ * Exact pseudocode specifications required for the visualizer debugger:
  *
  * INORDER:
  * 1: INORDER(node):

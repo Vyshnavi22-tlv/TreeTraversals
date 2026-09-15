@@ -98,12 +98,12 @@ export default function WhatIsBinaryTree() {
             <div className="flex items-center gap-2 pb-3 border-b border-zinc-800">
               <Info size={16} className="text-emerald-400" />
               <span className="font-mono text-xs uppercase font-semibold text-zinc-300">
-                Anatomy in Seminar Tree
+                Standard Tree Anatomy
               </span>
             </div>
 
             <div className="bg-dark-950 rounded-xl p-4 border border-zinc-850 font-mono text-xs space-y-2 text-zinc-300">
-              <div className="text-zinc-500">// Canonical 5-Node Seminar Tree</div>
+              <div className="text-zinc-500">// Standard 5-Node Benchmark Tree</div>
               <pre className="text-emerald-400 font-bold leading-tight">
 {`        A         Level 0 (Root)
        / \\

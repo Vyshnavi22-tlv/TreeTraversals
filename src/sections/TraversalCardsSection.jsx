@@ -17,7 +17,7 @@ export default function TraversalCardsSection({ onSelectTraversal }) {
             Traversal Methods
           </h2>
           <p className="text-zinc-300 text-base sm:text-lg leading-relaxed">
-            Examine the exact mechanics of Inorder, Preorder, and Postorder traversals. Compare their traversal rules, step-by-step paths on the seminar tree, algorithmic pseudocode, and real-world system applications.
+            Examine the exact mechanics of Inorder, Preorder, and Postorder traversals. Compare their traversal rules, step-by-step paths on the benchmark tree, algorithmic pseudocode, and real-world system applications.
           </p>
         </div>
 
