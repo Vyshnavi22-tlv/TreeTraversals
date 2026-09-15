@@ -18,7 +18,7 @@ export class TreeNode {
 
 /**
  * Standard Inorder Traversal (Left → Root → Right)
- * Returns array of values
+ * Returns array of values: ['D', 'B', 'E', 'A', 'C']
  */
 export function inorder(root) {
   const result = [];
@@ -34,7 +34,7 @@ export function inorder(root) {
 
 /**
  * Standard Preorder Traversal (Root → Left → Right)
- * Returns array of values
+ * Returns array of values: ['A', 'B', 'D', 'E', 'C']
  */
 export function preorder(root) {
   const result = [];
@@ -50,7 +50,7 @@ export function preorder(root) {
 
 /**
  * Standard Postorder Traversal (Left → Right → Root)
- * Returns array of values
+ * Returns array of values: ['D', 'E', 'B', 'C', 'A']
  */
 export function postorder(root) {
   const result = [];
@@ -83,7 +83,7 @@ export function createSeminarTree() {
 
 /**
  * Reusable Tree Layout Engine
- * Calculates (x, y) coordinates dynamically for ANY binary tree
+ * Dynamically assigns (x, y) coordinates for any binary tree
  * without hardcoded coordinates.
  */
 export function computeTreeLayout(root, options = {}) {
@@ -91,13 +91,13 @@ export function computeTreeLayout(root, options = {}) {
 
   const {
     viewWidth = 560,
-    viewHeight = 340,
-    topMargin = 50,
-    bottomMargin = 50,
+    viewHeight = 330,
+    topMargin = 55,
+    bottomMargin = 45,
     horizontalPadding = 60
   } = options;
 
-  // 1. Determine max depth of tree
+  // 1. Determine max depth
   let maxDepth = 0;
   function getDepth(node, currentDepth) {
     if (!node) return;
@@ -108,7 +108,7 @@ export function computeTreeLayout(root, options = {}) {
   }
   getDepth(root, 0);
 
-  // 2. Perform inorder traversal to determine horizontal rank for symmetric layout
+  // 2. Compute in-order ranks for optimal horizontal spacing
   let currentOrder = 0;
   const inorderRanks = new Map();
   function assignInorderRank(node) {
@@ -126,14 +126,13 @@ export function computeTreeLayout(root, options = {}) {
   const usableHeight = viewHeight - topMargin - bottomMargin;
   const yStep = maxDepth > 0 ? usableHeight / maxDepth : 0;
 
-  // 3. Position nodes and collect edges
+  // 3. Position nodes and construct edge list
   const nodes = [];
   const edges = [];
 
   function layoutSubtree(node) {
     if (!node) return;
 
-    // Initial x from inorder rank
     const rank = inorderRanks.get(node.id);
     node.x = Math.round(horizontalPadding + (rank * xStep));
     node.y = Math.round(topMargin + (node.depth * yStep));
@@ -165,7 +164,7 @@ export function computeTreeLayout(root, options = {}) {
 
   layoutSubtree(root);
 
-  // 4. Post-pass: adjust parents to be centered directly between their children if both exist
+  // 4. Center parent nodes above their children
   function centerParents(node) {
     if (!node) return;
     if (node.left) centerParents(node.left);
@@ -181,18 +180,62 @@ export function computeTreeLayout(root, options = {}) {
 }
 
 /**
- * Step-by-Step Traversal State Generator
- * Captures live state transitions of the authentic recursive algorithm.
+ * Exact pseudocode specifications required for the seminar debugger:
  *
- * Each step captures:
- * - currentNodeId: active node
- * - activeEdge: { from: id, to: id }
- * - actionType: 'visiting_left' | 'processing' | 'visiting_right' | 'backtracking' | 'complete'
- * - actionMessage: e.g. "Visiting left subtree", "Processing node", "Moving to right subtree"
- * - detailedMessage: contextual information about the step
- * - visitedNodes: array of node values currently emitted/processed
- * - callStack: array of active stack frames
- * - codeLine: executing line of code
+ * INORDER:
+ * 1: INORDER(node):
+ * 2:     if node is null:
+ * 3:         return
+ * 4:     INORDER(node.left)
+ * 5:     VISIT(node)
+ * 6:     INORDER(node.right)
+ *
+ * PREORDER:
+ * 1: PREORDER(node):
+ * 2:     if node is null:
+ * 3:         return
+ * 4:     VISIT(node)
+ * 5:     PREORDER(node.left)
+ * 6:     PREORDER(node.right)
+ *
+ * POSTORDER:
+ * 1: POSTORDER(node):
+ * 2:     if node is null:
+ * 3:         return
+ * 4:     POSTORDER(node.left)
+ * 5:     POSTORDER(node.right)
+ * 6:     VISIT(node)
+ */
+export const PSEUDOCODE_TEMPLATES = {
+  inorder: [
+    { line: 1, text: 'INORDER(node):' },
+    { line: 2, text: '    if node is null:' },
+    { line: 3, text: '        return' },
+    { line: 4, text: '    INORDER(node.left)' },
+    { line: 5, text: '    VISIT(node)' },
+    { line: 6, text: '    INORDER(node.right)' }
+  ],
+  preorder: [
+    { line: 1, text: 'PREORDER(node):' },
+    { line: 2, text: '    if node is null:' },
+    { line: 3, text: '        return' },
+    { line: 4, text: '    VISIT(node)' },
+    { line: 5, text: '    PREORDER(node.left)' },
+    { line: 6, text: '    PREORDER(node.right)' }
+  ],
+  postorder: [
+    { line: 1, text: 'POSTORDER(node):' },
+    { line: 2, text: '    if node is null:' },
+    { line: 3, text: '        return' },
+    { line: 4, text: '    POSTORDER(node.left)' },
+    { line: 5, text: '    POSTORDER(node.right)' },
+    { line: 6, text: '    VISIT(node)' }
+  ]
+};
+
+/**
+ * Step-by-step state generator synchronized with the real traversal engine.
+ * Captures line numbers (1..6) mapping directly to the pseudocode above.
  */
 export function generateTraversalSteps(root, traversalType = 'inorder') {
   const steps = [];
@@ -201,50 +244,50 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
   const visitedList = [];
   const callStack = [];
 
-  // Step 0: Algorithm Initiation
+  // Step 0: Initiation
   steps.push({
     currentNodeId: root.id,
     activeEdge: null,
     actionType: 'start',
     actionMessage: `Starting ${traversalType.toUpperCase()} Traversal`,
-    detailedMessage: `Call frame ${traversalType}(${root.val}) invoked on root node.`,
+    detailedMessage: `Invoking ${traversalType.toUpperCase()}(${root.val}) at the root of the tree.`,
     visitedNodes: [],
-    callStack: [`${traversalType}(${root.val})`],
+    callStack: [`${traversalType.toUpperCase()}(${root.val})`],
     codeLine: 1
   });
 
   /* -------------------------------------------------------------
-   * INORDER: Left -> Root -> Right
+   * INORDER (Left -> Root -> Right)
    * ------------------------------------------------------------- */
   function runInorder(node, parent = null) {
     if (!node) return;
 
-    const frame = `inorder(${node.val})`;
+    const frame = `INORDER(${node.val})`;
     callStack.push(frame);
 
-    // 1. Enter node
+    // Line 2: if node is null:
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: parent.id, to: node.id } : null,
-      actionType: 'visiting',
+      actionType: 'inspecting',
       actionMessage: `Inspecting node ${node.val}`,
-      detailedMessage: `Checking if node ${node.val} is null (it is not). Preparing to traverse left.`,
+      detailedMessage: `Executing line 2: node is not null (${node.val}). Proceeding to left child.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
       codeLine: 2
     });
 
-    // 2. Visit left subtree
+    // Line 4: INORDER(node.left)
     if (node.left) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.left.id },
         actionType: 'visiting_left',
         actionMessage: 'Visiting left subtree',
-        detailedMessage: `Recursing left from node ${node.val} to ${node.left.val}.`,
+        detailedMessage: `Executing line 4: INORDER(${node.left.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 3
+        codeLine: 4
       });
       runInorder(node.left, node);
     } else {
@@ -252,38 +295,38 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_left',
-        actionMessage: 'Visiting left subtree (empty)',
-        detailedMessage: `Node ${node.val} has no left child (null base case reached).`,
+        actionMessage: 'Visiting left subtree (null)',
+        detailedMessage: `Executing line 2-3: left child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
+        callStack: [...callStack, `INORDER(null)`],
         codeLine: 3
       });
     }
 
-    // 3. Process current node
+    // Line 5: VISIT(node)
     visitedList.push(node.val);
     steps.push({
       currentNodeId: node.id,
       activeEdge: null,
       actionType: 'processing',
       actionMessage: 'Processing node',
-      detailedMessage: `Left subtree is resolved. Processing node ${node.val} and appending to output stream.`,
+      detailedMessage: `Executing line 5: VISIT(${node.val}) — recording ${node.val} to traversal output.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 4
+      codeLine: 5
     });
 
-    // 4. Visit right subtree
+    // Line 6: INORDER(node.right)
     if (node.right) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.right.id },
         actionType: 'visiting_right',
         actionMessage: 'Moving to right subtree',
-        detailedMessage: `Node ${node.val} processed. Now recursing into right child ${node.right.val}.`,
+        detailedMessage: `Executing line 6: INORDER(${node.right.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 5
+        codeLine: 6
       });
       runInorder(node.right, node);
     } else {
@@ -291,62 +334,74 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_right',
-        actionMessage: 'Moving to right subtree (empty)',
-        detailedMessage: `Node ${node.val} has no right child (null base case reached).`,
+        actionMessage: 'Moving to right subtree (null)',
+        detailedMessage: `Executing line 2-3: right child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
-        codeLine: 5
+        callStack: [...callStack, `INORDER(null)`],
+        codeLine: 3
       });
     }
 
-    // 5. Backtrack / Return
+    // Return to caller
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: node.id, to: parent.id } : null,
       actionType: 'backtracking',
-      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
-      detailedMessage: `Finished subtree rooted at ${node.val}. Popping call frame from stack.`,
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root call',
+      detailedMessage: `Finished both subtrees for node ${node.val}. Popping ${frame} from stack.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 6
+      codeLine: 3
     });
 
     callStack.pop();
   }
 
   /* -------------------------------------------------------------
-   * PREORDER: Root -> Left -> Right
+   * PREORDER (Root -> Left -> Right)
    * ------------------------------------------------------------- */
   function runPreorder(node, parent = null) {
     if (!node) return;
 
-    const frame = `preorder(${node.val})`;
+    const frame = `PREORDER(${node.val})`;
     callStack.push(frame);
 
-    // 1. Process root immediately upon entering
-    visitedList.push(node.val);
+    // Line 2: if node is null:
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: parent.id, to: node.id } : null,
-      actionType: 'processing',
-      actionMessage: 'Processing node',
-      detailedMessage: `Root-first visit: processing node ${node.val} before inspecting children.`,
+      actionType: 'inspecting',
+      actionMessage: `Inspecting node ${node.val}`,
+      detailedMessage: `Executing line 2: node is not null (${node.val}).`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 3
+      codeLine: 2
     });
 
-    // 2. Visit left subtree
+    // Line 4: VISIT(node) immediately
+    visitedList.push(node.val);
+    steps.push({
+      currentNodeId: node.id,
+      activeEdge: null,
+      actionType: 'processing',
+      actionMessage: 'Processing node',
+      detailedMessage: `Executing line 4: VISIT(${node.val}) — root visited first in Preorder!`,
+      visitedNodes: [...visitedList],
+      callStack: [...callStack],
+      codeLine: 4
+    });
+
+    // Line 5: PREORDER(node.left)
     if (node.left) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.left.id },
         actionType: 'visiting_left',
         actionMessage: 'Visiting left subtree',
-        detailedMessage: `Moving from node ${node.val} down to left child ${node.left.val}.`,
+        detailedMessage: `Executing line 5: PREORDER(${node.left.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 4
+        codeLine: 5
       });
       runPreorder(node.left, node);
     } else {
@@ -354,25 +409,25 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_left',
-        actionMessage: 'Visiting left subtree (empty)',
-        detailedMessage: `Left child of ${node.val} is null.`,
+        actionMessage: 'Visiting left subtree (null)',
+        detailedMessage: `Left child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
-        codeLine: 4
+        callStack: [...callStack, `PREORDER(null)`],
+        codeLine: 3
       });
     }
 
-    // 3. Visit right subtree
+    // Line 6: PREORDER(node.right)
     if (node.right) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.right.id },
         actionType: 'visiting_right',
         actionMessage: 'Moving to right subtree',
-        detailedMessage: `Left branch finished. Moving to right child ${node.right.val}.`,
+        detailedMessage: `Executing line 6: PREORDER(${node.right.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 5
+        codeLine: 6
       });
       runPreorder(node.right, node);
     } else {
@@ -380,61 +435,61 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_right',
-        actionMessage: 'Moving to right subtree (empty)',
-        detailedMessage: `Right child of ${node.val} is null.`,
+        actionMessage: 'Moving to right subtree (null)',
+        detailedMessage: `Right child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
-        codeLine: 5
+        callStack: [...callStack, `PREORDER(null)`],
+        codeLine: 3
       });
     }
 
-    // 4. Return
+    // Return to caller
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: node.id, to: parent.id } : null,
       actionType: 'backtracking',
-      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
-      detailedMessage: `Completed preorder traversal for subtree rooted at ${node.val}.`,
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root call',
+      detailedMessage: `Preorder for subtree at ${node.val} completed. Popping stack frame.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 6
+      codeLine: 3
     });
 
     callStack.pop();
   }
 
   /* -------------------------------------------------------------
-   * POSTORDER: Left -> Right -> Root
+   * POSTORDER (Left -> Right -> Root)
    * ------------------------------------------------------------- */
   function runPostorder(node, parent = null) {
     if (!node) return;
 
-    const frame = `postorder(${node.val})`;
+    const frame = `POSTORDER(${node.val})`;
     callStack.push(frame);
 
-    // 1. Enter node
+    // Line 2: if node is null:
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: parent.id, to: node.id } : null,
-      actionType: 'visiting',
+      actionType: 'inspecting',
       actionMessage: `Entering node ${node.val}`,
-      detailedMessage: `Postorder must resolve both children before processing ${node.val}.`,
+      detailedMessage: `Executing line 2: node is not null. Children must be processed before visiting ${node.val}.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
       codeLine: 2
     });
 
-    // 2. Visit left subtree
+    // Line 4: POSTORDER(node.left)
     if (node.left) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.left.id },
         actionType: 'visiting_left',
         actionMessage: 'Visiting left subtree',
-        detailedMessage: `Descending from ${node.val} to left child ${node.left.val}.`,
+        detailedMessage: `Executing line 4: POSTORDER(${node.left.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 3
+        codeLine: 4
       });
       runPostorder(node.left, node);
     } else {
@@ -442,25 +497,25 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_left',
-        actionMessage: 'Visiting left subtree (empty)',
-        detailedMessage: `Left child of ${node.val} is null.`,
+        actionMessage: 'Visiting left subtree (null)',
+        detailedMessage: `Left child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
+        callStack: [...callStack, `POSTORDER(null)`],
         codeLine: 3
       });
     }
 
-    // 3. Visit right subtree
+    // Line 5: POSTORDER(node.right)
     if (node.right) {
       steps.push({
         currentNodeId: node.id,
         activeEdge: { from: node.id, to: node.right.id },
         actionType: 'visiting_right',
         actionMessage: 'Moving to right subtree',
-        detailedMessage: `Descending from ${node.val} to right child ${node.right.val}.`,
+        detailedMessage: `Executing line 5: POSTORDER(${node.right.val}) recursive call.`,
         visitedNodes: [...visitedList],
         callStack: [...callStack],
-        codeLine: 4
+        codeLine: 5
       });
       runPostorder(node.right, node);
     } else {
@@ -468,37 +523,37 @@ export function generateTraversalSteps(root, traversalType = 'inorder') {
         currentNodeId: node.id,
         activeEdge: null,
         actionType: 'visiting_right',
-        actionMessage: 'Moving to right subtree (empty)',
-        detailedMessage: `Right child of ${node.val} is null.`,
+        actionMessage: 'Moving to right subtree (null)',
+        detailedMessage: `Right child of ${node.val} is null → return.`,
         visitedNodes: [...visitedList],
-        callStack: [...callStack],
-        codeLine: 4
+        callStack: [...callStack, `POSTORDER(null)`],
+        codeLine: 3
       });
     }
 
-    // 4. Process node after both children
+    // Line 6: VISIT(node) after both children
     visitedList.push(node.val);
     steps.push({
       currentNodeId: node.id,
       activeEdge: null,
       actionType: 'processing',
       actionMessage: 'Processing node',
-      detailedMessage: `Both left and right subtrees resolved! Processing node ${node.val}.`,
+      detailedMessage: `Executing line 6: VISIT(${node.val}) — both subtrees complete, root node visited last!`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 5
+      codeLine: 6
     });
 
-    // 5. Backtrack
+    // Return to caller
     steps.push({
       currentNodeId: node.id,
       activeEdge: parent ? { from: node.id, to: parent.id } : null,
       actionType: 'backtracking',
-      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
-      detailedMessage: `Subtree at ${node.val} fully postorder evaluated. Popping stack.`,
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root call',
+      detailedMessage: `Postorder finished for subtree at ${node.val}. Popping ${frame} from stack.`,
       visitedNodes: [...visitedList],
       callStack: [...callStack],
-      codeLine: 6
+      codeLine: 3
     });
 
     callStack.pop();

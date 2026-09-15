@@ -1,25 +1,23 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import {
   Play,
   Pause,
   RotateCcw,
   ChevronRight,
   ChevronLeft,
-  Gauge,
   Sparkles,
-  Info,
+  Layers,
   Terminal,
   Activity,
-  Layers,
-  Code2
+  Cpu,
+  ArrowRight
 } from 'lucide-react';
 import VisualizerTreeSvg from '../components/VisualizerTreeSvg';
 import CodeTracer from '../components/CodeTracer';
 import CallStackVisualizer from '../components/CallStackVisualizer';
 import TraversalOutputQueue from '../components/TraversalOutputQueue';
 import {
-  createSeminarTree,
   inorder,
   preorder,
   postorder,
@@ -38,8 +36,8 @@ export default function VisualizerSection({
   const [selectedPresetId, setSelectedPresetId] = useState('default');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  // Speed in ms per step: range from 1800ms (Slow) to 350ms (Fast). Default: 900ms
-  const [stepDurationMs, setStepDurationMs] = useState(900);
+  // Animation delay: 1800ms (Slow) to 300ms (Fast). Default: 850ms
+  const [stepDurationMs, setStepDurationMs] = useState(850);
   const [hoveredNode, setHoveredNode] = useState(null);
 
   // Active preset object
@@ -134,11 +132,11 @@ export default function VisualizerSection({
     }
   };
 
-  // Human-readable action styling & label
-  const getActionBadgeColor = (actionType) => {
+  // Action badge visual tone
+  const getActionBadgeStyle = (actionType) => {
     switch (actionType) {
       case 'processing':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        return 'bg-emerald-500/25 text-emerald-300 border-emerald-500/50 shadow-sm shadow-emerald-500/20';
       case 'visiting_left':
         return 'bg-sky-500/20 text-sky-300 border-sky-500/40';
       case 'visiting_right':
@@ -154,30 +152,30 @@ export default function VisualizerSection({
 
   return (
     <section id="visualizer" className="py-20 border-t border-zinc-800/80 bg-dark-950 relative overflow-hidden">
-      {/* Centerpiece ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/[0.04] blur-[150px] rounded-full pointer-events-none" />
+      {/* Background ambient glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[480px] bg-emerald-500/[0.035] blur-[160px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 font-mono text-xs font-semibold mb-3 border border-emerald-500/20">
-              <Sparkles size={12} />
-              <span>VISUAL CENTERPIECE</span>
+              <Sparkles size={13} />
+              <span>TEACHING & DEBUGGING WORKBENCH</span>
               <span>//</span>
-              <span>RECURSIVE ALGORITHM ENGINE</span>
+              <span>SYNCHRONIZED SPLIT-VIEW</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
-              Interactive Visualizer
+              Visualizer & Code Debugger
             </h2>
             <p className="text-zinc-400 text-sm sm:text-base mt-2 max-w-2xl">
-              Watch the authentic recursive traversal execute step-by-step. Follow the active node, path transitions, execution stack, and live output stream.
+              Inspect how the recursive algorithm executes in real time: watch node states, path transitions, active pseudocode lines, and memory stack frames.
             </p>
           </div>
 
           {/* Tree Preset Selector */}
           <div className="flex items-center gap-1.5 bg-dark-900 border border-zinc-800 rounded-xl p-1.5 self-start lg:self-auto shadow-sm">
-            <span className="text-xs font-mono text-zinc-500 pl-2 pr-1">Tree:</span>
+            <span className="text-xs font-mono text-zinc-500 pl-2 pr-1">Preset:</span>
             {TREE_PRESETS.map((preset) => (
               <button
                 key={preset.id}
@@ -196,9 +194,9 @@ export default function VisualizerSection({
 
         {/* Main Visualizer Stage Card */}
         <div className="bg-dark-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-7 shadow-2xl shadow-emerald-950/20 space-y-6">
-          {/* Top Control Deck: [ Inorder ] [ Preorder ] [ Postorder ] + [ Start ] [ Pause ] [ Reset ] + Speed */}
+          {/* Top Control Bar: [ Inorder ] [ Preorder ] [ Postorder ] + [ Start ] [ Pause ] [ Reset ] + Speed */}
           <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-zinc-800/80">
-            {/* 1. Traversal Mode Buttons */}
+            {/* Traversal Mode Selectors */}
             <div className="flex items-center bg-dark-950 p-1 rounded-xl border border-zinc-800">
               {['inorder', 'preorder', 'postorder'].map((mode) => (
                 <button
@@ -215,9 +213,8 @@ export default function VisualizerSection({
               ))}
             </div>
 
-            {/* 2. Playback & Step Controls */}
+            {/* Playback & Step-by-Step Controls */}
             <div className="flex items-center gap-2">
-              {/* Start Button */}
               <button
                 onClick={handleStart}
                 disabled={isPlaying}
@@ -227,7 +224,6 @@ export default function VisualizerSection({
                 <span>Start</span>
               </button>
 
-              {/* Pause Button */}
               <button
                 onClick={handlePause}
                 disabled={!isPlaying}
@@ -237,7 +233,6 @@ export default function VisualizerSection({
                 <span>Pause</span>
               </button>
 
-              {/* Reset Button */}
               <button
                 onClick={handleReset}
                 className="p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition"
@@ -246,7 +241,7 @@ export default function VisualizerSection({
                 <RotateCcw size={15} />
               </button>
 
-              {/* Step-by-Step Mode: Step Backward */}
+              {/* Step-by-Step Controls */}
               <button
                 onClick={handleStepBackward}
                 disabled={currentStepIndex === 0}
@@ -257,7 +252,6 @@ export default function VisualizerSection({
                 <span className="hidden sm:inline">Step</span>
               </button>
 
-              {/* Step-by-Step Mode: Step Forward */}
               <button
                 onClick={handleStepForward}
                 disabled={currentStepIndex >= steps.length - 1}
@@ -269,7 +263,7 @@ export default function VisualizerSection({
               </button>
             </div>
 
-            {/* 3. Speed Control: Slow ←→ Fast */}
+            {/* Speed Control Slider: Slow ←→ Fast */}
             <div className="flex items-center gap-3 bg-dark-950 px-3.5 py-2 rounded-xl border border-zinc-800 text-xs font-mono text-zinc-400">
               <span className="text-zinc-500">Slow</span>
               <input
@@ -277,7 +271,7 @@ export default function VisualizerSection({
                 min="300"
                 max="1800"
                 step="50"
-                value={2100 - stepDurationMs} // Inverted so slider left = slow, right = fast
+                value={2100 - stepDurationMs}
                 onChange={(e) => setStepDurationMs(2100 - Number(e.target.value))}
                 className="w-24 sm:w-28 accent-emerald-400 cursor-pointer h-1.5 bg-zinc-800 rounded-lg"
                 title="Adjust animation speed"
@@ -286,108 +280,124 @@ export default function VisualizerSection({
             </div>
           </div>
 
-          {/* Current Action Display Banner */}
-          <div className="p-3.5 sm:p-4 rounded-xl bg-dark-950 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="flex h-2.5 w-2.5 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-
-              <div className="flex items-center flex-wrap gap-2 text-xs font-mono">
-                <span className="text-zinc-500 uppercase tracking-wider text-[11px]">Current Action:</span>
-                <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${getActionBadgeColor(currentStep.actionType)}`}>
-                  {currentStep.actionMessage}
-                </span>
-                {currentStep.detailedMessage && (
-                  <span className="text-zinc-400 text-xs hidden md:inline">
-                    — {currentStep.detailedMessage}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 font-mono text-xs text-zinc-500 shrink-0">
-              <span>Step <strong className="text-emerald-400">{currentStepIndex + 1}</strong> of {steps.length}</span>
-            </div>
-          </div>
-
-          {/* Centerpiece Grid: Tree Canvas (Left) + Code & Stack Tracers (Right) */}
+          {/* SPLIT LAYOUT: LEFT = Animated Tree, RIGHT = Algorithm / Pseudocode & Debugger */}
           <div className="grid lg:grid-cols-12 gap-6 items-stretch">
-            {/* Left Column: Dynamic SVG Tree Canvas */}
-            <div className="lg:col-span-7 bg-dark-950/70 border border-zinc-800/90 rounded-xl p-4 flex flex-col justify-between shadow-inner">
-              <div className="flex items-center justify-between text-xs font-mono text-zinc-400 pb-2 border-b border-zinc-850">
+            {/* ====================================================
+                LEFT COLUMN: Interactive Animated Tree
+               ==================================================== */}
+            <div className="lg:col-span-6 bg-dark-950/80 border border-zinc-800/90 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-inner">
+              {/* Left Column Header */}
+              <div className="flex items-center justify-between text-xs font-mono text-zinc-400 pb-3 border-b border-zinc-850">
                 <div className="flex items-center gap-2">
-                  <Activity size={14} className="text-emerald-400" />
-                  <span className="font-semibold text-zinc-300">
-                    Binary Tree Canvas: {currentPreset.name.split(' (')[0]}
+                  <Activity size={15} className="text-emerald-400" />
+                  <span className="font-bold text-zinc-200">
+                    LEFT: Animated Tree Canvas
                   </span>
                 </div>
                 <span className="text-[11px] text-zinc-500">
-                  {selectedTraversal.toUpperCase()} rule: {TRAVERSAL_INFO[selectedTraversal].rule}
+                  {currentPreset.name.split(' (')[0]}
                 </span>
               </div>
 
               {/* Dynamic SVG Tree Component with Layout Engine */}
-              <VisualizerTreeSvg
-                root={currentTreeRoot}
-                currentNodeId={currentStep.currentNodeId}
-                visitedNodes={currentStep.visitedNodes || []}
-                activeEdge={currentStep.activeEdge}
-                actionType={currentStep.actionType}
-                hoveredNodeId={hoveredNode?.id}
-                onNodeHover={setHoveredNode}
-                onNodeClick={(node) => setHoveredNode(node)}
-              />
+              <div className="py-2">
+                <VisualizerTreeSvg
+                  root={currentTreeRoot}
+                  currentNodeId={currentStep.currentNodeId}
+                  visitedNodes={currentStep.visitedNodes || []}
+                  activeEdge={currentStep.activeEdge}
+                  actionType={currentStep.actionType}
+                  hoveredNodeId={hoveredNode?.id}
+                  onNodeHover={setHoveredNode}
+                  onNodeClick={(node) => setHoveredNode(node)}
+                />
+              </div>
 
-              {/* Bottom Canvas Status */}
-              <div className="pt-2 border-t border-zinc-850 text-xs font-mono text-zinc-400 flex items-center justify-between">
+              {/* Left Column Footer Info */}
+              <div className="pt-3 border-t border-zinc-850 text-xs font-mono text-zinc-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   {hoveredNode ? (
                     <span className="text-emerald-400">
-                      Node <strong>{hoveredNode.val}</strong> (Left: {hoveredNode.left ? hoveredNode.left.val : 'null'}, Right: {hoveredNode.right ? hoveredNode.right.val : 'null'})
+                      Inspecting <strong>Node {hoveredNode.val}</strong> (Left: {hoveredNode.left ? hoveredNode.left.val : 'null'}, Right: {hoveredNode.right ? hoveredNode.right.val : 'null'})
                     </span>
                   ) : (
                     <span className="text-zinc-500">
-                      {shouldReduceMotion ? 'Reduced motion active' : 'Click/hover any node to inspect links'}
+                      {shouldReduceMotion ? 'Reduced motion active' : 'Click/hover nodes to inspect subtree pointers'}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-[11px]">
-                  <span className="flex items-center gap-1 text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Active
+
+                <div className="flex items-center gap-3 text-[11px] shrink-0">
+                  <span className="flex items-center gap-1.5 text-emerald-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span> Active
                   </span>
-                  <span className="flex items-center gap-1 text-emerald-600">
+                  <span className="flex items-center gap-1.5 text-emerald-500">
                     <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Visited
                   </span>
-                  <span className="flex items-center gap-1 text-zinc-600">
+                  <span className="flex items-center gap-1.5 text-zinc-500">
                     <span className="w-2 h-2 rounded-full bg-zinc-700"></span> Unvisited
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Synchronized Code Tracer + Real Call Stack */}
-            <div className="lg:col-span-5 grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
-              <div className="h-[210px]">
+            {/* ====================================================
+                RIGHT COLUMN: Algorithm / Pseudocode & Debugger
+               ==================================================== */}
+            <div className="lg:col-span-6 flex flex-col gap-4">
+              {/* 1. Current Action & Explanation Banner */}
+              <div className="p-4 rounded-xl bg-dark-950 border border-zinc-800/90 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-mono text-xs text-zinc-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="uppercase tracking-wider font-semibold text-zinc-300">
+                      Current Action:
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-zinc-500">
+                    Step <strong className="text-emerald-400">{currentStepIndex + 1}</strong> of {steps.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold border ${getActionBadgeStyle(currentStep.actionType)}`}>
+                    {currentStep.actionMessage}
+                  </span>
+                  {currentStep.currentNodeId && (
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-zinc-850 text-zinc-300 border border-zinc-750">
+                      Target: Node {currentStep.currentNodeId}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs font-mono text-zinc-300 leading-relaxed pt-1">
+                  {currentStep.detailedMessage || 'Waiting to begin algorithm execution...'}
+                </p>
+              </div>
+
+              {/* 2. Pseudocode Tracer (RIGHT: Algorithm / Pseudocode) */}
+              <div className="flex-1 min-h-[220px]">
                 <CodeTracer
                   traversalType={selectedTraversal}
                   activeLine={currentStep.codeLine}
                 />
               </div>
 
-              <div className="h-[180px]">
+              {/* 3. Call Stack Frames Monitor */}
+              <div className="h-[150px]">
                 <CallStackVisualizer callStack={currentStep.callStack || []} />
               </div>
             </div>
           </div>
 
-          {/* Live Traversal Output Stream */}
-          <TraversalOutputQueue
-            visitedNodes={currentStep.visitedNodes || []}
-            expectedNodes={expectedOutput}
-            traversalName={TRAVERSAL_INFO[selectedTraversal].name}
-          />
+          {/* Live Output Sequence Stream (Synchronized in real-time) */}
+          <div className="pt-2">
+            <TraversalOutputQueue
+              visitedNodes={currentStep.visitedNodes || []}
+              expectedNodes={expectedOutput}
+              traversalName={TRAVERSAL_INFO[selectedTraversal].name}
+            />
+          </div>
         </div>
       </div>
     </section>
