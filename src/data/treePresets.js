@@ -1,25 +1,7 @@
-import { TreeNode } from '../algorithms/traversals';
-
-/**
- * Default Seminar Tree:
- *         A
- *        / \
- *       B   C
- *      / \
- *     D   E
- */
-export function createDefaultTree() {
-  const d = new TreeNode('D', 'D', null, null, 140, 240);
-  const e = new TreeNode('E', 'E', null, null, 260, 240);
-  const b = new TreeNode('B', 'B', d, e, 200, 150);
-  const c = new TreeNode('C', 'C', null, null, 400, 150);
-  const a = new TreeNode('A', 'A', b, c, 300, 60);
-  return a;
-}
+import { TreeNode, createSeminarTree } from '../algorithms/traversals';
 
 /**
  * Binary Search Tree (Numeric):
- * Shows how Inorder traversal yields elements in sorted ascending order!
  *          40
  *        /    \
  *       20    60
@@ -27,33 +9,32 @@ export function createDefaultTree() {
  *     10  30 50 70
  */
 export function createBstTree() {
-  const n10 = new TreeNode('10', '10', null, null, 100, 240);
-  const n30 = new TreeNode('30', '30', null, null, 200, 240);
-  const n50 = new TreeNode('50', '50', null, null, 400, 240);
-  const n70 = new TreeNode('70', '70', null, null, 500, 240);
+  const n10 = new TreeNode(10, null, null, '10');
+  const n30 = new TreeNode(30, null, null, '30');
+  const n50 = new TreeNode(50, null, null, '50');
+  const n70 = new TreeNode(70, null, null, '70');
 
-  const n20 = new TreeNode('20', '20', n10, n30, 150, 150);
-  const n60 = new TreeNode('60', '60', n50, n70, 450, 150);
+  const n20 = new TreeNode(20, n10, n30, '20');
+  const n60 = new TreeNode(60, n50, n70, '60');
 
-  const root = new TreeNode('40', '40', n20, n60, 300, 60);
+  const root = new TreeNode(40, n20, n60, '40');
   return root;
 }
 
 /**
  * Expression Tree:
- * Demonstrates Prefix, Infix, Postfix evaluations:
  *          +
  *        /   \
- *       *     5
+ *       ×     5
  *      / \
  *     2   3
  */
 export function createExpressionTree() {
-  const n2 = new TreeNode('2', '2', null, null, 140, 240);
-  const n3 = new TreeNode('3', '3', null, null, 260, 240);
-  const mul = new TreeNode('*', '×', n2, n3, 200, 150);
-  const n5 = new TreeNode('5', '5', null, null, 400, 150);
-  const plus = new TreeNode('+', '+', mul, n5, 300, 60);
+  const n2 = new TreeNode('2', null, null, '2');
+  const n3 = new TreeNode('3', null, null, '3');
+  const mul = new TreeNode('×', n2, n3, 'mul');
+  const n5 = new TreeNode('5', null, null, '5');
+  const plus = new TreeNode('+', mul, n5, 'plus');
   return plus;
 }
 
@@ -61,8 +42,8 @@ export const TREE_PRESETS = [
   {
     id: 'default',
     name: 'Seminar Tree (A-E)',
-    description: 'The canonical 5-node tree featured in the seminar specification.',
-    factory: createDefaultTree,
+    description: 'The canonical 5-node tree (A, B, C, D, E) featured in the seminar specification.',
+    factory: createSeminarTree,
     nodeCount: 5,
     height: 3,
   },
@@ -77,7 +58,7 @@ export const TREE_PRESETS = [
   {
     id: 'expression',
     name: 'Expression Tree ((2 × 3) + 5)',
-    description: 'Notice how Postorder gives Postfix (Reverse Polish) and Preorder gives Prefix!',
+    description: 'Notice how Postorder gives Postfix and Preorder gives Prefix notation!',
     factory: createExpressionTree,
     nodeCount: 5,
     height: 3,

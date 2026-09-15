@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, RotateCcw, Sparkles } from 'lucide-react';
+import { createSeminarTree, computeTreeLayout, inorder, preorder, postorder } from '../algorithms/traversals';
 
 export default function HeroTreeSvg() {
+  const shouldReduceMotion = useReducedMotion();
   const [activeMode, setActiveMode] = useState('inorder'); // 'inorder' | 'preorder' | 'postorder'
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [hoveredNode, setHoveredNode] = useState(null);
 
-  // Traversal sequences on A, B, C, D, E
-  const sequences = {
-    inorder: ['D', 'B', 'E', 'A', 'C'],
-    preorder: ['A', 'B', 'D', 'E', 'C'],
-    postorder: ['D', 'E', 'B', 'C', 'A']
-  };
+  const root = useMemo(() => createSeminarTree(), []);
+
+  // Compute dynamic layout from tree data without any hardcoded visual coordinates
+  const { nodes, edges, width, height } = useMemo(() => {
+    return computeTreeLayout(root, {
+      viewWidth: 440,
+      viewHeight: 290,
+      topMargin: 50,
+      bottomMargin: 40,
+      horizontalPadding: 55
+    });
+  }, [root]);
+
+  // Traversal sequences computed by pure traversal functions
+  const sequences = useMemo(() => ({
+    inorder: inorder(root),
+    preorder: preorder(root),
+    postorder: postorder(root)
+  }), [root]);
 
   const sequence = sequences[activeMode];
-  const currentNode = sequence[currentStepIndex];
+  const currentNodeVal = sequence[currentStepIndex];
 
   // Auto-play subtle animation cycle in Hero
   useEffect(() => {
@@ -33,30 +48,22 @@ export default function HeroTreeSvg() {
     setCurrentStepIndex(0);
   };
 
-  // Node coordinates (SVG viewBox: 0 0 440 320)
-  const nodes = [
-    { id: 'A', label: 'A', x: 220, y: 55, role: 'Root', depth: 0 },
-    { id: 'B', label: 'B', x: 125, y: 150, role: 'Left Subtree Root', depth: 1 },
-    { id: 'C', label: 'C', x: 315, y: 150, role: 'Right Child', depth: 1 },
-    { id: 'D', label: 'D', x: 75, y: 245, role: 'Left Leaf', depth: 2 },
-    { id: 'E', label: 'E', x: 175, y: 245, role: 'Right Leaf', depth: 2 }
-  ];
+  // Node roles in canonical tree
+  const roles = {
+    A: 'Root (Depth 0)',
+    B: 'Left Subtree Root (Depth 1)',
+    C: 'Right Leaf (Depth 1)',
+    D: 'Leftmost Leaf (Depth 2)',
+    E: 'Right Leaf (Depth 2)'
+  };
 
-  const edges = [
-    { from: 'A', to: 'B', x1: 220, y1: 55, x2: 125, y2: 150 },
-    { from: 'A', to: 'C', x1: 220, y1: 55, x2: 315, y2: 150 },
-    { from: 'B', to: 'D', x1: 125, y1: 150, x2: 75, y2: 245 },
-    { from: 'B', to: 'E', x1: 125, y1: 150, x2: 175, y2: 245 }
-  ];
-
-  // Check if a node is visited in the current cycle
-  const getVisitOrder = (nodeId) => {
-    const idx = sequence.indexOf(nodeId);
+  const getVisitOrder = (val) => {
+    const idx = sequence.indexOf(val);
     return idx !== -1 ? idx + 1 : null;
   };
 
-  const isVisitedSoFar = (nodeId) => {
-    const idx = sequence.indexOf(nodeId);
+  const isVisitedSoFar = (val) => {
+    const idx = sequence.indexOf(val);
     return idx <= currentStepIndex;
   };
 
@@ -72,7 +79,7 @@ export default function HeroTreeSvg() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-mono text-zinc-400">Live Preview</span>
+          <span className="font-mono text-zinc-400">Live Engine Preview</span>
         </div>
 
         {/* Mode selector pills */}
@@ -110,26 +117,20 @@ export default function HeroTreeSvg() {
         </div>
       </div>
 
-      {/* SVG Canvas */}
+      {/* SVG Canvas with dynamic layout */}
       <div className="relative">
         <svg
-          viewBox="0 0 440 300"
+          viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto select-none"
           style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))' }}
         >
           <defs>
-            {/* Linear gradients for edges */}
-            <linearGradient id="edgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3f3f46" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#27272a" stopOpacity="0.6" />
-            </linearGradient>
-            <linearGradient id="edgeActiveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="heroEdgeActiveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#10b981" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#34d399" stopOpacity="0.4" />
             </linearGradient>
 
-            {/* Radial glow for active node */}
-            <radialGradient id="activeGlow" cx="50%" cy="50%" r="50%">
+            <radialGradient id="heroActiveGlow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
               <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
             </radialGradient>
@@ -138,32 +139,30 @@ export default function HeroTreeSvg() {
           {/* Edges */}
           {edges.map((edge) => {
             const isEdgeActive =
-              (currentNode === edge.from && sequence.indexOf(edge.to) === currentStepIndex + 1) ||
-              (currentNode === edge.to && sequence.indexOf(edge.from) <= currentStepIndex);
+              (currentNodeVal === edge.from.val && sequence.indexOf(edge.to.val) === currentStepIndex + 1) ||
+              (currentNodeVal === edge.to.val && sequence.indexOf(edge.from.val) <= currentStepIndex);
 
             return (
-              <g key={`${edge.from}-${edge.to}`}>
-                {/* Background line */}
+              <g key={edge.id}>
                 <line
-                  x1={edge.x1}
-                  y1={edge.y1}
-                  x2={edge.x2}
-                  y2={edge.y2}
+                  x1={edge.from.x}
+                  y1={edge.from.y}
+                  x2={edge.to.x}
+                  y2={edge.to.y}
                   stroke="#27272a"
                   strokeWidth="3"
                   strokeLinecap="round"
                 />
-                {/* Active connecting glow line */}
                 {isEdgeActive && (
                   <motion.line
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    x1={edge.x1}
-                    y1={edge.y1}
-                    x2={edge.x2}
-                    y2={edge.y2}
-                    stroke="url(#edgeActiveGrad)"
+                    initial={shouldReduceMotion ? { opacity: 1 } : { pathLength: 0 }}
+                    animate={shouldReduceMotion ? { opacity: 1 } : { pathLength: 1 }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: 'easeOut' }}
+                    x1={edge.from.x}
+                    y1={edge.from.y}
+                    x2={edge.to.x}
+                    y2={edge.to.y}
+                    stroke="url(#heroEdgeActiveGrad)"
                     strokeWidth="3.5"
                     strokeLinecap="round"
                   />
@@ -174,29 +173,29 @@ export default function HeroTreeSvg() {
 
           {/* Nodes */}
           {nodes.map((node) => {
-            const isActive = currentNode === node.id;
-            const visited = isVisitedSoFar(node.id);
-            const visitOrder = getVisitOrder(node.id);
-            const isHovered = hoveredNode === node.id;
+            const isActive = currentNodeVal === node.val;
+            const visited = isVisitedSoFar(node.val);
+            const visitOrder = getVisitOrder(node.val);
+            const isHovered = hoveredNode === node.val;
 
             return (
               <g
                 key={node.id}
                 className="cursor-pointer transition-transform duration-200"
-                onMouseEnter={() => setHoveredNode(node.id)}
+                onMouseEnter={() => setHoveredNode(node.val)}
                 onMouseLeave={() => setHoveredNode(null)}
                 onClick={() => {
-                  const idx = sequence.indexOf(node.id);
+                  const idx = sequence.indexOf(node.val);
                   if (idx !== -1) setCurrentStepIndex(idx);
                 }}
               >
                 {/* Active Outer Glow Ring */}
-                {isActive && (
+                {isActive && !shouldReduceMotion && (
                   <motion.circle
                     cx={node.x}
                     cy={node.y}
                     r={32}
-                    fill="url(#activeGlow)"
+                    fill="url(#heroActiveGlow)"
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.9, 0.6] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
@@ -208,23 +207,20 @@ export default function HeroTreeSvg() {
                   cx={node.x}
                   cy={node.y}
                   r={22}
-                  animate={{
-                    fill: isActive
-                      ? '#064e3b'
-                      : visited
-                      ? '#141c19'
-                      : '#11141b',
-                    stroke: isActive
-                      ? '#10b981'
-                      : visited
-                      ? '#059669'
-                      : isHovered
-                      ? '#71717a'
-                      : '#27272a',
-                    strokeWidth: isActive ? 2.5 : visited ? 2 : 1.5,
-                    scale: isActive ? 1.08 : isHovered ? 1.05 : 1
-                  }}
-                  transition={{ duration: 0.25 }}
+                  animate={
+                    shouldReduceMotion
+                      ? {
+                          fill: isActive ? '#064e3b' : visited ? '#141c19' : '#11141b',
+                          stroke: isActive ? '#10b981' : visited ? '#059669' : isHovered ? '#71717a' : '#27272a'
+                        }
+                      : {
+                          fill: isActive ? '#064e3b' : visited ? '#141c19' : '#11141b',
+                          stroke: isActive ? '#10b981' : visited ? '#059669' : isHovered ? '#71717a' : '#27272a',
+                          strokeWidth: isActive ? 2.5 : visited ? 2 : 1.5,
+                          scale: isActive ? 1.08 : isHovered ? 1.05 : 1
+                        }
+                  }
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
                 />
 
                 {/* Node Value Label */}
@@ -240,7 +236,7 @@ export default function HeroTreeSvg() {
                       : 'fill-zinc-400'
                   }`}
                 >
-                  {node.label}
+                  {node.val}
                 </text>
 
                 {/* Visit Order Badge */}
@@ -266,16 +262,14 @@ export default function HeroTreeSvg() {
         <AnimatePresence>
           {hoveredNode && (
             <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
               className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs font-mono text-zinc-300 shadow-xl flex items-center gap-2 pointer-events-none"
             >
               <span className="text-emerald-400 font-bold">Node {hoveredNode}</span>
               <span className="text-zinc-600">•</span>
-              <span className="text-zinc-400">
-                {nodes.find((n) => n.id === hoveredNode)?.role}
-              </span>
+              <span className="text-zinc-400">{roles[hoveredNode] || 'TreeNode'}</span>
               <span className="text-zinc-600">•</span>
               <span className="text-zinc-400">
                 {activeMode} position: #{sequence.indexOf(hoveredNode) + 1}

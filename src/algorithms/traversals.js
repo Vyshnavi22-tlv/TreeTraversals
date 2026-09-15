@@ -1,326 +1,527 @@
 /**
- * Binary Tree Traversal Algorithms & Step Generators
+ * Tree Traversals Algorithmic Engine & Step Generator
+ * Implements Inorder, Preorder, and Postorder traversals with
+ * authentic state generation for step-by-step educational visualization.
  */
 
 export class TreeNode {
-  constructor(id, val, left = null, right = null, x = 0, y = 0) {
-    this.id = id;
+  constructor(val, left = null, right = null, id = null) {
+    this.id = id || String(val);
     this.val = val;
     this.left = left;
     this.right = right;
-    this.x = x;
-    this.y = y;
+    this.x = 0;
+    this.y = 0;
+    this.depth = 0;
   }
 }
 
 /**
- * Returns clean node lists and edge lists from a root node
+ * Standard Inorder Traversal (Left → Root → Right)
+ * Returns array of values
  */
-export function getTreeElements(root) {
-  const nodes = [];
-  const edges = [];
-
-  function dfs(node) {
-    if (!node) return;
-    nodes.push(node);
-    if (node.left) {
-      edges.push({ from: node, to: node.left, id: `${node.id}-${node.left.id}` });
-      dfs(node.left);
-    }
-    if (node.right) {
-      edges.push({ from: node, to: node.right, id: `${node.id}-${node.right.id}` });
-      dfs(node.right);
-    }
-  }
-
-  dfs(root);
-  return { nodes, edges };
-}
-
-/**
- * Pre-generate full traversal values
- */
-export function getTraversalOutput(root, type) {
+export function inorder(root) {
   const result = [];
-  if (!root) return result;
-
-  function inorder(node) {
+  function traverse(node) {
     if (!node) return;
-    inorder(node.left);
+    traverse(node.left);
     result.push(node.val);
-    inorder(node.right);
+    traverse(node.right);
   }
-
-  function preorder(node) {
-    if (!node) return;
-    result.push(node.val);
-    preorder(node.left);
-    preorder(node.right);
-  }
-
-  function postorder(node) {
-    if (!node) return;
-    postorder(node.left);
-    postorder(node.right);
-    result.push(node.val);
-  }
-
-  if (type === 'inorder') inorder(root);
-  else if (type === 'preorder') preorder(root);
-  else if (type === 'postorder') postorder(root);
-
+  traverse(root);
   return result;
 }
 
 /**
- * Step generator for visualizer with detailed call stack and line tracing
+ * Standard Preorder Traversal (Root → Left → Right)
+ * Returns array of values
  */
-export function generateTraversalSteps(root, traversalType) {
+export function preorder(root) {
+  const result = [];
+  function traverse(node) {
+    if (!node) return;
+    result.push(node.val);
+    traverse(node.left);
+    traverse(node.right);
+  }
+  traverse(root);
+  return result;
+}
+
+/**
+ * Standard Postorder Traversal (Left → Right → Root)
+ * Returns array of values
+ */
+export function postorder(root) {
+  const result = [];
+  function traverse(node) {
+    if (!node) return;
+    traverse(node.left);
+    traverse(node.right);
+    result.push(node.val);
+  }
+  traverse(root);
+  return result;
+}
+
+/**
+ * Canonical seminar tree factory:
+ *         A
+ *        / \
+ *       B   C
+ *      / \
+ *     D   E
+ */
+export function createSeminarTree() {
+  const d = new TreeNode('D', null, null, 'D');
+  const e = new TreeNode('E', null, null, 'E');
+  const b = new TreeNode('B', d, e, 'B');
+  const c = new TreeNode('C', null, null, 'C');
+  const a = new TreeNode('A', b, c, 'A');
+  return a;
+}
+
+/**
+ * Reusable Tree Layout Engine
+ * Calculates (x, y) coordinates dynamically for ANY binary tree
+ * without hardcoded coordinates.
+ */
+export function computeTreeLayout(root, options = {}) {
+  if (!root) return { nodes: [], edges: [], width: 500, height: 320 };
+
+  const {
+    viewWidth = 560,
+    viewHeight = 340,
+    topMargin = 50,
+    bottomMargin = 50,
+    horizontalPadding = 60
+  } = options;
+
+  // 1. Determine max depth of tree
+  let maxDepth = 0;
+  function getDepth(node, currentDepth) {
+    if (!node) return;
+    node.depth = currentDepth;
+    if (currentDepth > maxDepth) maxDepth = currentDepth;
+    getDepth(node.left, currentDepth + 1);
+    getDepth(node.right, currentDepth + 1);
+  }
+  getDepth(root, 0);
+
+  // 2. Perform inorder traversal to determine horizontal rank for symmetric layout
+  let currentOrder = 0;
+  const inorderRanks = new Map();
+  function assignInorderRank(node) {
+    if (!node) return;
+    assignInorderRank(node.left);
+    inorderRanks.set(node.id, currentOrder++);
+    assignInorderRank(node.right);
+  }
+  assignInorderRank(root);
+
+  const totalNodes = currentOrder;
+  const usableWidth = viewWidth - (horizontalPadding * 2);
+  const xStep = totalNodes > 1 ? usableWidth / (totalNodes - 1) : usableWidth / 2;
+
+  const usableHeight = viewHeight - topMargin - bottomMargin;
+  const yStep = maxDepth > 0 ? usableHeight / maxDepth : 0;
+
+  // 3. Position nodes and collect edges
+  const nodes = [];
+  const edges = [];
+
+  function layoutSubtree(node) {
+    if (!node) return;
+
+    // Initial x from inorder rank
+    const rank = inorderRanks.get(node.id);
+    node.x = Math.round(horizontalPadding + (rank * xStep));
+    node.y = Math.round(topMargin + (node.depth * yStep));
+
+    nodes.push(node);
+
+    if (node.left) {
+      edges.push({
+        id: `${node.id}-${node.left.id}`,
+        fromId: node.id,
+        toId: node.left.id,
+        from: node,
+        to: node.left
+      });
+      layoutSubtree(node.left);
+    }
+
+    if (node.right) {
+      edges.push({
+        id: `${node.id}-${node.right.id}`,
+        fromId: node.id,
+        toId: node.right.id,
+        from: node,
+        to: node.right
+      });
+      layoutSubtree(node.right);
+    }
+  }
+
+  layoutSubtree(root);
+
+  // 4. Post-pass: adjust parents to be centered directly between their children if both exist
+  function centerParents(node) {
+    if (!node) return;
+    if (node.left) centerParents(node.left);
+    if (node.right) centerParents(node.right);
+
+    if (node.left && node.right) {
+      node.x = Math.round((node.left.x + node.right.x) / 2);
+    }
+  }
+  centerParents(root);
+
+  return { nodes, edges, width: viewWidth, height: viewHeight };
+}
+
+/**
+ * Step-by-Step Traversal State Generator
+ * Captures live state transitions of the authentic recursive algorithm.
+ *
+ * Each step captures:
+ * - currentNodeId: active node
+ * - activeEdge: { from: id, to: id }
+ * - actionType: 'visiting_left' | 'processing' | 'visiting_right' | 'backtracking' | 'complete'
+ * - actionMessage: e.g. "Visiting left subtree", "Processing node", "Moving to right subtree"
+ * - detailedMessage: contextual information about the step
+ * - visitedNodes: array of node values currently emitted/processed
+ * - callStack: array of active stack frames
+ * - codeLine: executing line of code
+ */
+export function generateTraversalSteps(root, traversalType = 'inorder') {
   const steps = [];
   if (!root) return steps;
 
   const visitedList = [];
-  const currentStack = [];
+  const callStack = [];
 
-  // Initial step: beginning
+  // Step 0: Algorithm Initiation
   steps.push({
-    activeNodeId: null,
+    currentNodeId: root.id,
+    activeEdge: null,
+    actionType: 'start',
+    actionMessage: `Starting ${traversalType.toUpperCase()} Traversal`,
+    detailedMessage: `Call frame ${traversalType}(${root.val}) invoked on root node.`,
     visitedNodes: [],
-    callStack: [`traverse(${root.val})`],
-    codeLine: 1,
-    action: 'start',
-    message: `Starting ${traversalType.toUpperCase()} traversal at root node ${root.val}.`
+    callStack: [`${traversalType}(${root.val})`],
+    codeLine: 1
   });
 
-  function traverseInorder(node) {
-    if (!node) {
-      steps.push({
-        activeNodeId: null,
-        visitedNodes: [...visitedList],
-        callStack: [...currentStack, 'null'],
-        codeLine: 2,
-        action: 'null_check',
-        message: 'Base case reached: node is null. Backtracking.'
-      });
-      return;
-    }
+  /* -------------------------------------------------------------
+   * INORDER: Left -> Root -> Right
+   * ------------------------------------------------------------- */
+  function runInorder(node, parent = null) {
+    if (!node) return;
 
     const frame = `inorder(${node.val})`;
-    currentStack.push(frame);
+    callStack.push(frame);
 
-    // Line 1-2: check null
+    // 1. Enter node
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: parent.id, to: node.id } : null,
+      actionType: 'visiting',
+      actionMessage: `Inspecting node ${node.val}`,
+      detailedMessage: `Checking if node ${node.val} is null (it is not). Preparing to traverse left.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 2,
-      action: 'inspect',
-      message: `Inspecting node ${node.val}. It is not null, so proceed.`
+      callStack: [...callStack],
+      codeLine: 2
     });
 
-    // Line 3: traverse left
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 3,
-      action: 'recurse_left',
-      message: `Traversing Left subtree of ${node.val}...`
-    });
-    traverseInorder(node.left);
+    // 2. Visit left subtree
+    if (node.left) {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.left.id },
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree',
+        detailedMessage: `Recursing left from node ${node.val} to ${node.left.val}.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 3
+      });
+      runInorder(node.left, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree (empty)',
+        detailedMessage: `Node ${node.val} has no left child (null base case reached).`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 3
+      });
+    }
 
-    // Line 4: visit current node
+    // 3. Process current node
     visitedList.push(node.val);
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: null,
+      actionType: 'processing',
+      actionMessage: 'Processing node',
+      detailedMessage: `Left subtree is resolved. Processing node ${node.val} and appending to output stream.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 4,
-      action: 'visit',
-      message: `Visiting and recording node ${node.val} (Left is complete).`
+      callStack: [...callStack],
+      codeLine: 4
     });
 
-    // Line 5: traverse right
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 5,
-      action: 'recurse_right',
-      message: `Traversing Right subtree of ${node.val}...`
-    });
-    traverseInorder(node.right);
+    // 4. Visit right subtree
+    if (node.right) {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.right.id },
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree',
+        detailedMessage: `Node ${node.val} processed. Now recursing into right child ${node.right.val}.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 5
+      });
+      runInorder(node.right, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree (empty)',
+        detailedMessage: `Node ${node.val} has no right child (null base case reached).`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 5
+      });
+    }
 
-    // End of function for this node
+    // 5. Backtrack / Return
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: node.id, to: parent.id } : null,
+      actionType: 'backtracking',
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
+      detailedMessage: `Finished subtree rooted at ${node.val}. Popping call frame from stack.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 6,
-      action: 'return',
-      message: `Both subtrees for node ${node.val} processed. Returning call frame.`
+      callStack: [...callStack],
+      codeLine: 6
     });
-    currentStack.pop();
+
+    callStack.pop();
   }
 
-  function traversePreorder(node) {
-    if (!node) {
-      steps.push({
-        activeNodeId: null,
-        visitedNodes: [...visitedList],
-        callStack: [...currentStack, 'null'],
-        codeLine: 2,
-        action: 'null_check',
-        message: 'Base case reached: node is null. Backtracking.'
-      });
-      return;
-    }
+  /* -------------------------------------------------------------
+   * PREORDER: Root -> Left -> Right
+   * ------------------------------------------------------------- */
+  function runPreorder(node, parent = null) {
+    if (!node) return;
 
     const frame = `preorder(${node.val})`;
-    currentStack.push(frame);
+    callStack.push(frame);
 
-    // Line 2: inspect
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 2,
-      action: 'inspect',
-      message: `Inspecting node ${node.val}. Base check passed.`
-    });
-
-    // Line 3: visit root immediately
+    // 1. Process root immediately upon entering
     visitedList.push(node.val);
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: parent.id, to: node.id } : null,
+      actionType: 'processing',
+      actionMessage: 'Processing node',
+      detailedMessage: `Root-first visit: processing node ${node.val} before inspecting children.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 3,
-      action: 'visit',
-      message: `Visiting root node ${node.val} before visiting any children.`
+      callStack: [...callStack],
+      codeLine: 3
     });
 
-    // Line 4: recurse left
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 4,
-      action: 'recurse_left',
-      message: `Moving down to Left child of ${node.val}...`
-    });
-    traversePreorder(node.left);
-
-    // Line 5: recurse right
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 5,
-      action: 'recurse_right',
-      message: `Moving down to Right child of ${node.val}...`
-    });
-    traversePreorder(node.right);
-
-    // End of function
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 6,
-      action: 'return',
-      message: `Preorder for subtree at ${node.val} is complete. Popping stack.`
-    });
-    currentStack.pop();
-  }
-
-  function traversePostorder(node) {
-    if (!node) {
+    // 2. Visit left subtree
+    if (node.left) {
       steps.push({
-        activeNodeId: null,
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.left.id },
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree',
+        detailedMessage: `Moving from node ${node.val} down to left child ${node.left.val}.`,
         visitedNodes: [...visitedList],
-        callStack: [...currentStack, 'null'],
-        codeLine: 2,
-        action: 'null_check',
-        message: 'Base case reached: node is null. Backtracking.'
+        callStack: [...callStack],
+        codeLine: 4
       });
-      return;
+      runPreorder(node.left, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree (empty)',
+        detailedMessage: `Left child of ${node.val} is null.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 4
+      });
     }
 
+    // 3. Visit right subtree
+    if (node.right) {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.right.id },
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree',
+        detailedMessage: `Left branch finished. Moving to right child ${node.right.val}.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 5
+      });
+      runPreorder(node.right, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree (empty)',
+        detailedMessage: `Right child of ${node.val} is null.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 5
+      });
+    }
+
+    // 4. Return
+    steps.push({
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: node.id, to: parent.id } : null,
+      actionType: 'backtracking',
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
+      detailedMessage: `Completed preorder traversal for subtree rooted at ${node.val}.`,
+      visitedNodes: [...visitedList],
+      callStack: [...callStack],
+      codeLine: 6
+    });
+
+    callStack.pop();
+  }
+
+  /* -------------------------------------------------------------
+   * POSTORDER: Left -> Right -> Root
+   * ------------------------------------------------------------- */
+  function runPostorder(node, parent = null) {
+    if (!node) return;
+
     const frame = `postorder(${node.val})`;
-    currentStack.push(frame);
+    callStack.push(frame);
 
-    // Line 2: inspect
+    // 1. Enter node
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: parent.id, to: node.id } : null,
+      actionType: 'visiting',
+      actionMessage: `Entering node ${node.val}`,
+      detailedMessage: `Postorder must resolve both children before processing ${node.val}.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 2,
-      action: 'inspect',
-      message: `Entering node ${node.val}. Must explore children before visiting.`
+      callStack: [...callStack],
+      codeLine: 2
     });
 
-    // Line 3: traverse left
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 3,
-      action: 'recurse_left',
-      message: `Recursing Left on child of ${node.val}...`
-    });
-    traversePostorder(node.left);
+    // 2. Visit left subtree
+    if (node.left) {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.left.id },
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree',
+        detailedMessage: `Descending from ${node.val} to left child ${node.left.val}.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 3
+      });
+      runPostorder(node.left, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_left',
+        actionMessage: 'Visiting left subtree (empty)',
+        detailedMessage: `Left child of ${node.val} is null.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 3
+      });
+    }
 
-    // Line 4: traverse right
-    steps.push({
-      activeNodeId: node.id,
-      visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 4,
-      action: 'recurse_right',
-      message: `Recursing Right on child of ${node.val}...`
-    });
-    traversePostorder(node.right);
+    // 3. Visit right subtree
+    if (node.right) {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: { from: node.id, to: node.right.id },
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree',
+        detailedMessage: `Descending from ${node.val} to right child ${node.right.val}.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 4
+      });
+      runPostorder(node.right, node);
+    } else {
+      steps.push({
+        currentNodeId: node.id,
+        activeEdge: null,
+        actionType: 'visiting_right',
+        actionMessage: 'Moving to right subtree (empty)',
+        detailedMessage: `Right child of ${node.val} is null.`,
+        visitedNodes: [...visitedList],
+        callStack: [...callStack],
+        codeLine: 4
+      });
+    }
 
-    // Line 5: visit root after both children
+    // 4. Process node after both children
     visitedList.push(node.val);
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: null,
+      actionType: 'processing',
+      actionMessage: 'Processing node',
+      detailedMessage: `Both left and right subtrees resolved! Processing node ${node.val}.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 5,
-      action: 'visit',
-      message: `Both subtrees evaluated! Visiting node ${node.val} now.`
+      callStack: [...callStack],
+      codeLine: 5
     });
 
-    // Return
+    // 5. Backtrack
     steps.push({
-      activeNodeId: node.id,
+      currentNodeId: node.id,
+      activeEdge: parent ? { from: node.id, to: parent.id } : null,
+      actionType: 'backtracking',
+      actionMessage: parent ? `Backtracking to ${parent.val}` : 'Completed root execution',
+      detailedMessage: `Subtree at ${node.val} fully postorder evaluated. Popping stack.`,
       visitedNodes: [...visitedList],
-      callStack: [...currentStack],
-      codeLine: 6,
-      action: 'return',
-      message: `Postorder finished for subtree at ${node.val}. Popping stack.`
+      callStack: [...callStack],
+      codeLine: 6
     });
-    currentStack.pop();
+
+    callStack.pop();
   }
 
   if (traversalType === 'inorder') {
-    traverseInorder(root);
+    runInorder(root);
   } else if (traversalType === 'preorder') {
-    traversePreorder(root);
+    runPreorder(root);
   } else if (traversalType === 'postorder') {
-    traversePostorder(root);
+    runPostorder(root);
   }
 
-  // Final step
+  // Final Step: Complete
   steps.push({
-    activeNodeId: null,
+    currentNodeId: null,
+    activeEdge: null,
+    actionType: 'complete',
+    actionMessage: 'Traversal complete',
+    detailedMessage: `All ${visitedList.length} nodes visited in ${traversalType.toUpperCase()} order: [${visitedList.join(' → ')}]`,
     visitedNodes: [...visitedList],
     callStack: [],
-    codeLine: null,
-    action: 'complete',
-    message: `Traversal finished! All ${visitedList.length} nodes successfully visited.`
+    codeLine: null
   });
 
   return steps;
